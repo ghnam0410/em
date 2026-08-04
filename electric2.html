@@ -840,7 +840,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     <!-- Bohr Model Canvas Container -->
                     <div class="bg-slate-950 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center min-h-[340px] relative">
-                        <span class="font-cute text-xs text-slate-400 mb-2">실시간 보어(Bohr) 원자 모형 궤도 비행</span>
+                        <span class="font-cute text-xs text-slate-400 mb-2">실시간 보어(Bohr) 원자 모형</span>
                         <canvas id="bohr-canvas" width="300" height="300" class="max-w-full h-auto"></canvas>
                         <div id="bohr-caption" class="text-xs text-cyan-300 font-cute mt-2 text-center"></div>
                     </div>
@@ -1324,7 +1324,7 @@
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const caption = document.getElementById('bohr-caption');
-            caption.innerText = `${data.symbol} 원자핵 주변 ${data.shells.length}개 전자 껍질 (총 ${data.num}개 전자 비행)`;
+            caption.innerText = `${data.symbol} 원자핵 주변 ${data.shells.length}개 전자 껍질 (총 ${data.num}개)`;
 
             if (animFrameId) cancelAnimationFrame(animFrameId);
 
