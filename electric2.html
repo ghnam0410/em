@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>02. 가까이 하면 생기는 전기 (정전기 유도) ⚡</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Fonts (Jua for titles, Gowun Dodum for body readability) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MathJax for LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-darker: #020617; 
+            --panel-bg: rgba(30, 41, 59, 0.75); 
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-pink: #f472b6;
+            --neon-yellow: #facc15;
+            --gold: #d4af37;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-darker);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.1), transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.1), transparent 30%),
+                radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.05), transparent 40%);
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-blue { text-shadow: 0 0 12px rgba(56,189,248,0.7), 0 0 24px rgba(56,189,248,0.4); }
+        .glow-purple { text-shadow: 0 0 12px rgba(192,132,252,0.7), 0 0 24px rgba(192,132,252,0.4); }
+        .glow-green { text-shadow: 0 0 12px rgba(52,211,153,0.7), 0 0 24px rgba(52,211,153,0.4); }
+        .glow-yellow { text-shadow: 0 0 12px rgba(250,204,21,0.7), 0 0 24px rgba(250,204,21,0.4); }
+        .glow-gold { text-shadow: 0 0 12px rgba(212,175,55,0.8), 0 0 24px rgba(212,175,55,0.4); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(56,189,248,0.4); }
+            50% { box-shadow: 0 0 30px rgba(56,189,248,0.8); }
+        }
+
+        .concept-blank {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.12);
+            color: transparent;
+            border-bottom: 3px dashed var(--neon-blue);
+            padding: 0 12px;
+            margin: 0 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!';
+            position: absolute;
+            left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-blue);
+            font-size: 0.85rem;
+            font-family: 'Jua';
+            opacity: 0.8;
+            animation: pulse-glow 1.5s infinite alternate;
+        }
+        .concept-blank.revealed {
+            background: rgba(56, 189, 248, 0.22);
+            color: var(--neon-blue);
+            border-bottom: 3px solid var(--neon-blue);
+            text-shadow: 0 0 10px rgba(56,189,248,0.5);
+            transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { content: ''; display: none; }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            position: relative; overflow: hidden; transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #0284c7, #8b5cf6);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        .exp-container {
+            position: relative; width: 100%; height: 460px;
+            background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+            border-radius: 20px; border: 2px solid #334155;
+            overflow: hidden; user-select: none;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
+        }
+
+        /* Aluminum Can Element */
+        .can-body {
+            position: absolute;
+            width: 130px; height: 180px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #475569 100%);
+            border-radius: 24px;
+            box-shadow: inset 0 0 25px rgba(255,255,255,0.6), 0 20px 30px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            padding: 12px;
+            transition: transform 0.1s linear, left 0.1s linear;
+        }
+        .can-body::before {
+            content: 'ALUMINUM CAN';
+            font-family: 'Jua'; font-size: 0.75rem; color: #1e293b;
+            letter-spacing: 1px; opacity: 0.7;
+        }
+
+        /* Charging Rod Element */
+        .charged-rod {
+            position: absolute;
+            width: 180px; height: 32px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px;
+            cursor: grab; z-index: 50;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transition: box-shadow 0.3s;
+        }
+        .charged-rod:active { cursor: grabbing; transform: scale(0.98); }
+
+        .rod-minus {
+            background: linear-gradient(90deg, #0284c7, #38bdf8);
+            border: 2px solid #7dd3fc;
+            box-shadow: 0 0 20px rgba(56,189,248,0.6);
+        }
+        .rod-plus {
+            background: linear-gradient(90deg, #dc2626, #f87171);
+            border: 2px solid #fca5a5;
+            box-shadow: 0 0 20px rgba(239,68,68,0.6);
+        }
+
+        /* Particle Charges inside Can */
+        .charge-particle {
+            position: absolute; width: 22px; height: 22px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-family: 'Jua'; font-size: 14px; font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+        .particle-plus { background: #ef4444; color: white; box-shadow: 0 0 8px #ef4444; }
+        .particle-minus { background: #38bdf8; color: #020617; box-shadow: 0 0 8px #38bdf8; }
+
+        /* Force Arrows */
+        .force-arrow-anim {
+            position: absolute; height: 8px; background: #facc15;
+            border-radius: 4px; opacity: 0; transition: opacity 0.3s;
+            box-shadow: 0 0 12px #facc15; pointer-events: none;
+        }
+
+        .history-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease; padding: 1rem;
+        }
+        .history-modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .history-modal-card {
+            background: #0f172a;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 24px; max-width: 650px; width: 100%;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .history-modal-overlay.active .history-modal-card { transform: scale(1); }
+
+        /* Quiz Box */
+        .q-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: none; border-bottom: 2px dashed var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 4px 8px; font-weight: bold; text-align: center;
+            width: 110px; transition: all 0.3s;
+        }
+        .q-box:focus { outline: none; border-bottom-style: solid; box-shadow: 0 10px 10px -10px var(--neon-blue); }
+        .q-box.correct { border-bottom-color: var(--neon-green); color: var(--neon-green); background: rgba(52, 211, 153, 0.15); }
+        .q-box.wrong { border-bottom-color: var(--neon-pink); color: var(--neon-pink); background: rgba(244, 114, 182, 0.15); }
+
+        /* Metallic element buttons for STS Section */
+        .metal-btn {
+            background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
+            border: 2px solid #475569;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .metal-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(56, 189, 248, 0.3);
+            border-color: #38bdf8;
+        }
+        .metal-zr {
+            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 50%, #1d4ed8 100%);
+            border-color: #60a5fa;
+        }
+        .metal-hf {
+            background: linear-gradient(135deg, #312e81 0%, #8b5cf6 50%, #6d28d9 100%);
+            border-color: #c084fc;
+        }
+
+        /* DRAM Virtual Lab Styles */
+        .dram-capacitor {
+            width: 130px; height: 160px;
+            border: 4px solid #475569;
+            border-top: none; border-bottom: none;
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .dram-dielectric {
+            position: absolute; inset: 0;
+            background: rgba(148, 163, 184, 0.2);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: background 0.5s, box-shadow 0.5s;
+        }
+        .dram-charge {
+            width: 20px; height: 20px; background: #facc15; border-radius: 50%;
+            box-shadow: 0 0 10px #facc15; position: relative;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 12px; font-weight: bold; color: #713f12;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+        
+        @keyframes dram-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px) rotate(-1deg); }
+            40% { transform: translateX(6px) rotate(1deg); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .dram-error-shake {
+            animation: dram-shake 0.4s ease-in-out infinite;
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.8) !important;
+        }
+
+        @keyframes leak-sparkle {
+            0% { transform: translateY(0) scale(1); opacity: 1; filter: drop-shadow(0 0 6px #facc15); }
+            50% { transform: translateY(50px) translateX(-15px) scale(1.2); opacity: 0.8; filter: drop-shadow(0 0 10px #ef4444); }
+            100% { transform: translateY(130px) translateX(25px) scale(0); opacity: 0; }
+        }
+        .dram-leak-anim {
+            animation: leak-sparkle 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950 px-4">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-microchip text-cyan-400 drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"></i>
+                <i class="fa-solid fa-bolt text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]"></i>
+                <i class="fa-solid fa-atom text-purple-400 drop-shadow-[0_0_20px_rgba(192,132,252,0.8)]"></i>
+            </div>
+            <h1 class="font-cute text-3xl sm:text-5xl md:text-6xl text-white mb-6 glow-blue tracking-wider">02. 가까이 하면 생기는 전기</h1>
+            <p class="text-xl md:text-2xl text-slate-300 mb-8 font-light">정전기 유도 원리부터 첨단 DRAM 반도체 소재 탐구까지 ✨</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-xl">
+                <h3 class="font-cute text-2xl text-yellow-300 mb-3 text-center">💡 학습 단계 안내</h3>
+                <ul class="text-slate-200 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 1단계: 정전기 유도의 원리와 전자 이동</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 2단계: 가상 실험 (알루미늄 캔 & 검전기)</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 3단계: 도체 vs 절연체(유전 분극) 관찰</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 4단계: 교과서 핵심 심화 퀴즈</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-cyan-400"></i> 5단계: STS 첨단 반도체 (ZrO₂, HfO₂ DRAM 탐구)</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-[0_0_35px_rgba(56,189,248,0.6)] transition-transform hover:scale-105 active:scale-95">
+                탐구 실험실 입장 🚀
+            </button>
+            <p class="mt-5 text-slate-400 text-sm animate-pulse"><i class="fa-solid fa-headphones"></i> 음향 효과와 함께 학습하면 효과가 배가됩니다!</p>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8">
+            <h1 class="font-cute text-4xl md:text-5xl text-white glow-blue">⚡ 가까이 하면 생기는 전기 (정전기 유도)</h1>
+            <p class="text-slate-400 mt-2 font-cute text-lg">중학교 2학년 과학 02단원 핵심 개념 & STS 첨단 기술 연계 탐구</p>
+        </header>
+
+        <!-- Main Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 glass-panel p-2">
+            <button onclick="openTab('theory')" id="btn-theory" class="nav-btn active font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">1단계: 원리 파헤치기 🔍</button>
+            <button onclick="openTab('lab')" id="btn-lab" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">2~3단계: 가상 실험실 🧪</button>
+            <button onclick="openTab('summary')" id="btn-summary" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">4단계: 심화 퀴즈 💯</button>
+            <button onclick="openTab('sts')" id="btn-sts" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">5단계: STS DRAM 반도체 🚀</button>
+        </nav>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: THEORY (원리 파헤치기) -->
+        <!-- ========================================== -->
+        <section id="tab-theory" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-blue-900/30 border border-blue-500/50 p-4 rounded-xl mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-circle-info text-blue-400 text-2xl"></i>
+                <p class="text-slate-200">설명 속 <strong class="text-blue-300">점선 빈칸</strong>을 클릭해 핵심 개념어를 확인하고 아래 비주얼 모형을 통해 전자 이동을 확인하세요!</p>
+            </div>
+
+            <!-- Concept Section 1 -->
+            <div class="mb-12">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h2 class="font-cute text-3xl md:text-4xl text-blue-400 flex items-center gap-3">
+                        <i class="fa-solid fa-atom"></i> 1. 정전기 유도란 무엇일까?
+                    </h2>
+                    <button onclick="openHistoryModal('electroscope')" class="font-cute text-sm bg-blue-900/50 hover:bg-blue-800 text-blue-300 border border-blue-500/50 px-4 py-2 rounded-full transition-all flex items-center gap-2 hover:scale-105">
+                        <i class="fa-solid fa-scroll text-yellow-400"></i> 과학사 돋보기: 검전기의 발명과 윌리엄 길버트
+                    </button>
+                </div>
+
+                <div class="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 text-lg space-y-5">
+                    <p>
+                        전기를 띠지 않던 물체에 전기를 띤 물체(<span class="concept-blank" onclick="revealBlank(this)">대전체</span>)를 <strong>접촉하지 않고 가까이 가져갈 때</strong>, 대전되지 않은 물체도 순간적으로 전기를 띠게 되는 현상을 <span class="concept-blank" onclick="revealBlank(this)">정전기 유도</span>라고 합니다. ⚡
+                    </p>
+                    
+                    <div class="bg-slate-900/70 p-6 rounded-2xl border border-slate-700 my-6">
+                        <h4 class="font-cute text-center text-yellow-300 text-xl mb-4">🔬 [핵심 원리] 원자 모형으로 보는 정전기 유도</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            
+                            <!-- (-) Charged Straw Approach -->
+                            <div class="bg-slate-800/60 p-5 rounded-xl border border-blue-500/30 text-center">
+                                <h5 class="font-cute text-blue-300 text-lg mb-2">(-) 대전체를 가까이 할 때</h5>
+                                <div class="relative h-36 bg-slate-950 rounded-lg border border-slate-700 flex items-center justify-around px-4 overflow-hidden">
+                                    <div class="w-16 h-20 bg-blue-600 border border-blue-400 rounded-md flex flex-col justify-center items-center text-white font-cute text-xs">
+                                        <span>(-) 빨대</span>
+                                        <span class="text-sm">- - -</span>
+                                    </div>
+                                    <i class="fa-solid fa-arrow-right text-blue-400 text-xl animate-pulse"></i>
+                                    <div class="w-28 h-20 bg-slate-700 border border-slate-500 rounded-md flex justify-between items-center px-2 relative">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs text-red-400 font-bold">(+) 우세</span>
+                                            <span class="text-red-400 font-bold text-sm">+ +</span>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs text-blue-400 font-bold">(-) 전자 밀려남</span>
+                                            <span class="text-blue-400 font-bold text-sm">- -</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-300 mt-3">전자가 척력(밀어내는 힘)을 받아 <strong class="text-blue-300">먼 쪽으로 이동</strong> ➡️ 가까운 쪽은 <strong class="text-red-400">(+)전하</strong>를 띰!</p>
+                            </div>
+
+                            <!-- (+) Charged Fur Approach -->
+                            <div class="bg-slate-800/60 p-5 rounded-xl border border-red-500/30 text-center">
+                                <h5 class="font-cute text-red-300 text-lg mb-2">(+) 대전체를 가까이 할 때</h5>
+                                <div class="relative h-36 bg-slate-950 rounded-lg border border-slate-700 flex items-center justify-around px-4 overflow-hidden">
+                                    <div class="w-16 h-20 bg-red-600 border border-red-400 rounded-md flex flex-col justify-center items-center text-white font-cute text-xs">
+                                        <span>(+) 털가죽</span>
+                                        <span class="text-sm">+ + +</span>
+                                    </div>
+                                    <i class="fa-solid fa-arrow-right text-red-400 text-xl animate-pulse"></i>
+                                    <div class="w-28 h-20 bg-slate-700 border border-slate-500 rounded-md flex justify-between items-center px-2 relative">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs text-blue-400 font-bold">(-) 전자 끌려옴</span>
+                                            <span class="text-blue-400 font-bold text-sm">- -</span>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-xs text-red-400 font-bold">(+) 우세</span>
+                                            <span class="text-red-400 font-bold text-sm">+ +</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-300 mt-3">전자가 인력(당기는 힘)을 받아 <strong class="text-blue-300">가까운 쪽으로 이동</strong> ➡️ 가까운 쪽은 <strong class="text-blue-300">(-)전하</strong>를 띰!</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <p class="text-slate-300 bg-slate-900/50 p-4 rounded-lg border-l-4 border-yellow-400">
+                        🔑 <strong>왜 일어날까?</strong> 원자 속에 고정되어 움직이지 못하는 무거운 <span class="concept-blank" onclick="revealBlank(this)">원자핵</span>과 달리, 가볍고 자유로운 <span class="concept-blank" onclick="revealBlank(this)">전자</span>만 이동하기 때문입니다!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Concept Section 2 -->
+            <div class="mb-12">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h2 class="font-cute text-3xl md:text-4xl text-purple-400 flex items-center gap-3">
+                        <i class="fa-solid fa-box-open"></i> 2. 금속(도체)과 종이/풍선(절연체)의 차이
+                    </h2>
+                    <button onclick="openHistoryModal('aepinus')" class="font-cute text-sm bg-purple-900/50 hover:bg-purple-800 text-purple-300 border border-purple-500/50 px-4 py-2 rounded-full transition-all flex items-center gap-2 hover:scale-105">
+                        <i class="fa-solid fa-scroll text-yellow-400"></i> 과학사 돋보기: 에피누스의 정전기 유도 설
+                    </button>
+                </div>
+
+                <div class="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 text-lg space-y-5">
+                    <p>전기가 통하지 않는 종이나 고무 풍선 같은 <span class="concept-blank" onclick="revealBlank(this)">절연체</span>에서도 정전기 유도가 일어날까요?</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-blue-500/40">
+                            <h4 class="font-cute text-blue-400 text-xl mb-3"><i class="fa-solid fa-shield-halved"></i> 도체 (알루미늄, 금속)</h4>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                금속 내부에는 자유롭게 돌아다닐 수 있는 <strong>'자유 전자'</strong>가 존재합니다. 대전체를 가까이 대면 전자들이 물체 끝과 끝으로 먼 거리를 신속하게 이동합니다.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-purple-500/40">
+                            <h4 class="font-cute text-purple-400 text-xl mb-3"><i class="fa-regular fa-note-sticky"></i> 절연체 (종이, 고무, 미세먼지)</h4>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                전자가 원자 밖으로 자유롭게 벗어나지 못하지만, 대전체를 대면 <strong>원자 내부에서 전자가 한쪽으로 살짝 치우치는 현상(<span class="concept-blank" onclick="revealBlank(this)">유전 분극</span>)</strong>이 일어납니다!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-xl text-emerald-200 text-center font-cute text-xl">
+                        💡 결론: 도체든 절연체든 대전체를 가까이 하면 <strong>항상 서로 끌어당기는 힘(인력)</strong>이 작용합니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab')" class="font-cute bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all hover:scale-105">
+                    개념 확인 끝! 가상 실험실로 이동 🧪 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- History Popup Modal -->
+        <div id="history-modal" class="history-modal-overlay" onclick="closeHistoryModal(event)">
+            <div class="history-modal-card p-6 md:p-8 relative" onclick="event.stopPropagation()">
+                <button onclick="closeHistoryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl w-10 h-10 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div id="history-modal-content"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: LAB (가상 실험실) -->
+        <!-- ========================================== -->
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            
+            <!-- Lab Progress Nav -->
+            <div class="flex justify-center gap-2 sm:gap-4 mb-4">
+                <div id="step-nav-1" class="font-cute px-4 sm:px-6 py-2 rounded-full bg-blue-500 text-white font-bold border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]">실험 1. 알루미늄 캔 관찰</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-3"></i>
+                <div id="step-nav-2" class="font-cute px-4 sm:px-6 py-2 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">실험 2. 금속 검전기 탐구</div>
+            </div>
+
+            <!-- LAB SCENE 1: Aluminum Can Rolling -->
+            <div id="lab-scene-1" class="glass-panel p-6 md:p-8">
+                <h2 class="font-cute text-3xl text-blue-400 glow-blue mb-2">
+                    <i class="fa-solid fa-flask"></i> 탐구 실험: 대전체를 가까이 한 알루미늄 캔 관찰하기
+                </h2>
+                <p class="text-slate-300 mb-6 bg-slate-800/80 p-4 rounded-xl border border-slate-700 flex items-center gap-3 text-sm sm:text-base">
+                    <i class="fa-solid fa-hand-pointer text-2xl text-yellow-400 animate-bounce"></i>
+                    <span><strong>실험 방법:</strong> 대전체 막대(빨대/털가죽)를 드래그하여 알루미늄 캔에 <strong>닿지 않게 가까이</strong> 가져가보세요! 캔 내부 전자의 이동과 끌려오는 모습을 관찰하세요.</span>
+                </p>
+
+                <div class="flex flex-wrap gap-4 justify-center mb-6">
+                    <button onclick="selectRod('straw')" id="btn-straw" class="font-cute px-5 py-2.5 rounded-xl bg-blue-600 text-white border-2 border-blue-300 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all">
+                        <i class="fa-solid fa-minus-circle"></i> (-) 대전된 플라스틱 빨대
+                    </button>
+                    <button onclick="selectRod('fur')" id="btn-fur" class="font-cute px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 border-2 border-slate-600 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all">
+                        <i class="fa-solid fa-plus-circle"></i> (+) 대전된 털가죽
+                    </button>
+                </div>
+
+                <div class="exp-container" id="exp-area-1">
+                    <div class="absolute bottom-10 left-0 right-0 h-4 bg-slate-700/60 border-t border-slate-500"></div>
+                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-cute text-slate-400">매끄러운 실험대</div>
+
+                    <div id="aluminum-can" class="can-body" style="left: 55%; top: 120px;">
+                        <div id="can-charges-top" class="w-full flex justify-around"></div>
+                        <div class="text-center">
+                            <span class="font-cute text-slate-800 text-xl font-bold block">빈 알루미늄 캔</span>
+                            <span class="text-[11px] text-slate-600 font-bold block">도체 (자유전자)</span>
+                        </div>
+                        <div id="can-charges-bottom" class="w-full flex justify-around"></div>
+                    </div>
+
+                    <div id="drag-rod" class="charged-rod rod-minus" style="left: 10%; top: 180px;">
+                        <span class="font-cute text-white text-sm" id="rod-label">(-) 플라스틱 빨대</span>
+                        <div class="flex gap-1" id="rod-signs">
+                            <span class="text-white font-bold">-</span>
+                            <span class="text-white font-bold">-</span>
+                            <span class="text-white font-bold">-</span>
+                        </div>
+                    </div>
+
+                    <div id="force-arrow" class="force-arrow-anim" style="top: 200px; left: 45%; width: 60px;"></div>
+                </div>
+
+                <div id="quiz-scene-1" class="hidden mt-6 bg-blue-900/40 p-6 rounded-xl border border-blue-500/50 backdrop-blur-sm">
+                    <h3 class="font-cute text-2xl text-yellow-300 mb-3">🧐 탐구 실험 질문 Q1</h3>
+                    <p class="text-lg text-slate-200 mb-4">(-)전하로 대전된 빨대를 가까이 가져갈 때, 알루미늄 캔 속 전자(-)들은 어디로 이동하며 캔은 어떻게 움직였나요?</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="checkLabQuiz(1, true)" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold border border-blue-400 text-left sm:text-center">
+                            전자가 빨대에서 먼 쪽으로 밀려나고, 캔이 빨대 쪽으로 끌려온다.
+                        </button>
+                        <button onclick="checkLabQuiz(1, false)" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold border border-slate-500 text-left sm:text-center">
+                            전자가 빨대 쪽으로 끌려오고, 캔은 빨대에서 멀어진다.
+                        </button>
+                    </div>
+                    <div id="feedback-1" class="text-center mt-4 text-xl font-bold font-cute hidden"></div>
+                </div>
+            </div>
+
+            <!-- LAB SCENE 2: Electroscope Exploration -->
+            <div id="lab-scene-2" class="glass-panel p-6 md:p-8 hidden">
+                <h2 class="font-cute text-3xl text-purple-400 glow-purple mb-2">
+                    <i class="fa-solid fa-microscope"></i> 실험 2. 금속 검전기(Electroscope) 탐구
+                </h2>
+                <p class="text-slate-300 mb-6 bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-sm sm:text-base">
+                    정전기 유도 현상을 이용해 물체의 대전 여부를 확인하는 장치인 <strong>검전기</strong>의 원리를 실험해 보세요!
+                </p>
+
+                <div class="exp-container h-[420px] flex items-center justify-around" id="exp-area-2">
+                    <div class="relative w-64 h-80 bg-slate-900/90 rounded-2xl border border-slate-700 p-4 flex flex-col items-center">
+                        <span class="font-cute text-blue-300 text-sm mb-2">금속 검전기</span>
+                        <div id="metal-knob" class="w-20 h-8 bg-slate-400 rounded-t-xl border border-slate-200 flex items-center justify-around px-2 relative transition-colors">
+                            <span class="text-xs font-bold text-slate-800">금속판</span>
+                            <div id="knob-charges" class="absolute inset-0 flex justify-around items-center opacity-0 transition-opacity"></div>
+                        </div>
+                        <div class="w-3 h-28 bg-slate-400 border-x border-slate-300"></div>
+                        <div class="w-48 h-36 border-2 border-slate-500 rounded-b-3xl bg-slate-800/30 backdrop-blur-sm relative flex justify-center items-top pt-2">
+                            <div id="leaf-left" class="w-3 h-20 bg-yellow-400 border border-yellow-200 origin-top transform transition-transform duration-300"></div>
+                            <div id="leaf-right" class="w-3 h-20 bg-yellow-400 border border-yellow-200 origin-top transform transition-transform duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 max-w-xs text-center space-y-4">
+                        <h4 class="font-cute text-xl text-yellow-300">대전체 접근 컨트롤</h4>
+                        <p class="text-xs text-slate-300">버튼을 눌러 대전체를 금속판에 가까이 대어 보세요.</p>
+                        <div class="space-y-2">
+                            <button onclick="triggerElectroscope('minus')" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-cute rounded-lg border border-blue-400">
+                                (-) 대전체 접근시키기
+                            </button>
+                            <button onclick="triggerElectroscope('plus')" class="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-cute rounded-lg border border-red-400">
+                                (+) 대전체 접근시키기
+                            </button>
+                            <button onclick="triggerElectroscope('reset')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-cute rounded-lg border border-slate-500">
+                                멀리 치우기
+                            </button>
+                        </div>
+                        <div id="electroscope-status" class="text-xs font-cute text-blue-300 min-h-[32px] flex items-center justify-center">
+                            대전체를 가까이 가져가면 금속 박이벌어집니다.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button onclick="openTab('summary')" class="font-cute text-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(192,132,252,0.5)] transition-transform hover:scale-105">
+                        실험 완료! 4단계 심화 퀴즈로 🏆
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: SUMMARY QUIZ (심화 퀴즈 & Q&A) -->
+        <!-- ========================================== -->
+        <section id="tab-summary" class="tab-content hidden glass-panel p-6 md:p-10">
+            <h2 class="font-cute text-4xl text-amber-400 mb-8 text-center glow-yellow">
+                <i class="fa-solid fa-medal text-amber-400"></i> 최종 실력 점검 심화 퀴즈
+            </h2>
+            
+            <p class="text-center text-slate-300 mb-8 text-lg">교과서 탐구 Q&A와 실생활 연결 문제의 빈칸을 완성해보세요!</p>
+
+            <div class="space-y-8 max-w-3xl mx-auto">
+                
+                <!-- Quiz 1 -->
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-lg">
+                    <h3 class="font-bold text-blue-400 mb-3 text-xl flex items-center gap-2">
+                        <i class="fa-solid fa-pen-nib"></i> Q1. 대전체를 대었을 때 전자의 이동
+                    </h3>
+                    <p class="text-lg text-slate-200 leading-loose">
+                        (-)대전체를 가까이 하면, 원자 속에 있던 가벼운 <input type="text" class="q-box" data-answer="전자" placeholder="ㅈㅈ"> 가 척력(밀어내는 힘)을 받아 대전체에서 <input type="text" class="q-box" data-answer="먼" placeholder="ㅁ"> 쪽으로 이동합니다.
+                    </p>
+                </div>
+
+                <!-- Quiz 2 -->
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-lg">
+                    <h3 class="font-bold text-purple-400 mb-3 text-xl flex items-center gap-2">
+                        <i class="fa-solid fa-bolt-lightning text-yellow-400"></i> Q2. 대전체와 물체 사이의 전기력
+                    </h3>
+                    <p class="text-lg text-slate-200 leading-loose">
+                        (+)대전체를 가까이 대든, (-)대전체를 가까이 대든 상관없이 물체의 가까운 쪽은 항상 반대 전하를 띠게 되므로 서로 끌어당기는 <input type="text" class="q-box" data-answer="인력" placeholder="ㅇㄹ"> 이 작용합니다.
+                    </p>
+                </div>
+
+                <!-- Quiz 3 -->
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-lg">
+                    <h3 class="font-bold text-green-400 mb-3 text-xl flex items-center gap-2">
+                        <i class="fa-solid fa-wind"></i> Q3. 실생활 연결: 공기 청정기 필터
+                    </h3>
+                    <p class="text-lg text-slate-200 leading-loose">
+                        공기 청정기 필터 구멍보다 작은 미세 먼지가 붙는 이유는 전기를 띤 필터에 접근한 미세 먼지에 <input type="text" class="q-box" data-answer="정전기유도" placeholder="ㅈㅈㄱㅇㄷ"> 현상이 일어나 끌려오기 때문입니다.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mt-12 text-center">
+                <button onclick="checkQuiz()" class="font-cute text-2xl bg-gradient-to-r from-pink-500 to-amber-500 hover:from-pink-400 hover:to-amber-400 text-white py-4 px-12 rounded-full shadow-[0_0_30px_rgba(244,114,182,0.5)] transition-transform hover:scale-105 active:scale-95">
+                    정답 확인하기! 🏆
+                </button>
+                <div id="quiz-msg" class="font-bold text-2xl mt-6 hidden font-cute"></div>
+            </div>
+
+            <!-- Navigation to STS Stage -->
+            <div class="mt-12 pt-8 border-t border-slate-700/80 text-center">
+                <p class="text-slate-300 mb-4 font-cute text-xl">정전기 유도와 유전체 원리가 쓰이는 첨단 반도체 세계로 가볼까요?</p>
+                <button onclick="openTab('sts')" class="font-cute bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white text-2xl py-4 px-10 rounded-full shadow-[0_0_30px_rgba(56,189,248,0.5)] transition-transform hover:scale-105">
+                    5단계: STS 첨단 반도체 & DRAM 탐구 🚀
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: STS (DRAM & ZrO2 / HfO2 반도체 탐구) -->
+        <!-- ========================================== -->
+        <section id="tab-sts" class="tab-content hidden glass-panel p-6 md:p-10">
+            <div class="text-center mb-8">
+                <span class="bg-cyan-500/20 text-cyan-300 font-cute px-4 py-1.5 rounded-full text-base border border-cyan-500/40">
+                    🔬 STS (Science, Technology & Society)
+                </span>
+                <h2 class="font-cute text-3xl md:text-5xl text-cyan-300 mt-3 glow-blue">
+                    정전기 누설을 막아 움직이는 초고속 세상: DRAM과 희귀 첨단 원소
+                </h2>
+                <p class="text-slate-300 mt-2 font-light text-base md:text-lg">
+                    우리가 스마트폰과 컴퓨터를 쓸 때 정보(0과 1)를 기억하는 초미세 반도체, <strong>DRAM</strong> 속 숨겨진 정전기 차단 기술!
+                </p>
+            </div>
+
+            <!-- STS Part 1: Interactive Zirconium & Hafnium Element Selector -->
+            <div class="bg-slate-900/90 p-6 md:p-8 rounded-2xl border border-slate-700 mb-10">
+                <h3 class="font-cute text-2xl md:text-3xl text-center text-white mb-2">
+                    ⚛️ DRAM 신소재 원소 탐구실 (원자를 클릭해 보세요!)
+                </h3>
+                <p class="text-center text-slate-400 mb-6 text-sm">
+                    아래 지르코늄(Zr)과 하프늄(Hf) 원소 단추를 누르면 3D 보어 원자 모형 애니메이션과 상세 물성/전자 배치를 볼 수 있습니다.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                    <!-- Zr Button -->
+                    <button onclick="openElementModal('Zr')" class="metal-btn metal-zr p-5 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div class="text-left">
+                            <span class="text-xs text-blue-200 font-bold block">원자번호 40</span>
+                            <span class="font-cute text-3xl text-white block">지르코늄 (Zr)</span>
+                            <span class="text-xs text-slate-300">DRAM 커패시터 ZrO₂ 유전체</span>
+                        </div>
+                        <div class="w-14 h-14 bg-blue-500/30 rounded-xl border border-blue-300/50 flex items-center justify-center text-2xl text-blue-200 font-bold">
+                            Zr
+                        </div>
+                    </button>
+
+                    <!-- Hf Button -->
+                    <button onclick="openElementModal('Hf')" class="metal-btn metal-hf p-5 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div class="text-left">
+                            <span class="text-xs text-purple-200 font-bold block">원자번호 72</span>
+                            <span class="font-cute text-3xl text-white block">하프늄 (Hf)</span>
+                            <span class="text-xs text-slate-300">High-k HfO₂ 차세대 게이트 유전체</span>
+                        </div>
+                        <div class="w-14 h-14 bg-purple-500/30 rounded-xl border border-purple-300/50 flex items-center justify-center text-2xl text-purple-200 font-bold">
+                            Hf
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STS Part 2: DRAM Principles for Middle School Students -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-900/80 p-6 rounded-2xl border border-cyan-500/30 space-y-4">
+                    <h3 class="font-cute text-2xl text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-yellow-400"></i> DRAM이란 무엇일까?
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                        DRAM(디램)은 전하(+)를 저장하거나 비우는 아주 작은 <strong>전기 주머니(커패시터/축전기)</strong>에 전하가 차 있으면 <strong class="text-yellow-300">'1'</strong>, 비어 있으면 <strong class="text-blue-300">'0'</strong>으로 인식해 기억하는 초고속 메모리 반도체입니다.
+                    </p>
+                    <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-xs sm:text-sm text-slate-300 space-y-3">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-shield-halved text-cyan-400 mt-1 shrink-0"></i>
+                            <div>
+                                <strong class="text-cyan-300">정전기 누설 차단 원리:</strong> 유전체(절연체)는 전하가 밖으로 새어 나가지 못하도록 막아주어 저장된 전하와 데이터('1')를 안전하게 지켜줍니다.
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-1 shrink-0"></i>
+                            <div>
+                                <strong class="text-amber-300">초미세화의 문제점:</strong> DRAM 세포가 수 나노미터(머리카락의 1/100,000) 크기로 작아지면서 절연막이 너무 얇아져 전기가 밖으로 줄줄 새는 <strong class="text-red-400">'누설 전류'</strong> 비상이 걸렸습니다!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-6 rounded-2xl border border-purple-500/30 space-y-4">
+                    <h3 class="font-cute text-2xl text-purple-400 flex items-center gap-2">
+                        <i class="fa-solid fa-gem text-pink-400"></i> 구원투수: High-k 신소재 (ZrO₂, HfO₂)
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                        누설 전류를 완벽히 차단하기 위해 얇은 두께에서도 전하를 꽉 붙잡아둘 수 있는 <strong>지르코늄 산화물(ZrO₂)</strong>과 <strong>하프늄 산화물(HfO₂)</strong>을 유전체 신소재로 사용합니다.
+                    </p>
+                    <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-xs sm:text-sm text-slate-300 space-y-3">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-shield text-cyan-400 mt-1 shrink-0"></i>
+                            <div>
+                                <strong class="text-cyan-300">ZrO₂ (지르코늄 산화막):</strong> 현재 초미세 DRAM 커패시터에서 누설 전류를 차단하는 핵심 필수 유전체막!
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400 mt-1 shrink-0"></i>
+                            <div>
+                                <strong class="text-purple-300">HfO₂ (하프늄 산화막):</strong> 전하를 가두는 능력이 극도로 높아 차세대 반도체 공정을 혁신한 최첨단 신소재!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New DRAM Virtual Lab Interactive -->
+            <div class="bg-slate-800/90 p-6 md:p-8 rounded-2xl border border-blue-400/50 mb-10 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                <h3 class="font-cute text-2xl text-yellow-300 mb-2 text-center">
+                    <i class="fa-solid fa-flask"></i> 가상 실험: DRAM 커패시터 전하 저장(데이터 '1' 쓰기) 테스트
+                </h3>
+                <p class="text-center text-slate-300 text-sm mb-6">
+                    일반 유전체와 신소재(High-k) 유전체에서 전하(데이터)가 어떻게 보존되는지 체험해보세요!
+                </p>
+                
+                <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                    
+                    <!-- Capacitor Model -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-32 h-4 bg-slate-400 rounded-t-sm mb-1 border border-slate-300 text-center text-[10px] text-slate-800 font-bold leading-none pt-0.5">상부 전극</div>
+                        <div class="dram-capacitor flex justify-center items-center relative">
+                            <div id="dram-dielectric-layer" class="dram-dielectric text-center">
+                                <span id="dielectric-label" class="font-bold text-slate-400 text-sm">일반 절연체<br><span class="text-xs">(SiO₂)</span></span>
+                            </div>
+                            <!-- Charges container -->
+                            <div id="dram-charge-container" class="absolute inset-0 flex flex-wrap justify-center items-center p-2 gap-1.5 pointer-events-none"></div>
+                        </div>
+                        <div class="w-32 h-4 bg-slate-400 rounded-b-sm mt-1 border border-slate-300 text-center text-[10px] text-slate-800 font-bold leading-none pt-0.5">하부 전극</div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex flex-col gap-4 min-w-[250px]">
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                            <h4 class="font-cute text-blue-300 mb-2 text-sm">1. 유전체(절연체) 소재 선택</h4>
+                            <div class="flex bg-slate-800 rounded-lg p-1 gap-1">
+                                <button onclick="setDielectric('normal')" id="btn-mat-normal" class="flex-1 py-1.5 text-xs font-bold bg-slate-600 text-white rounded-md transition-colors">일반 (SiO₂)</button>
+                                <button onclick="setDielectric('highk')" id="btn-mat-highk" class="flex-1 py-1.5 text-xs font-bold text-slate-400 hover:bg-slate-700 rounded-md transition-colors">신소재 (ZrO₂)</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                            <h4 class="font-cute text-amber-300 mb-2 text-sm">2. 데이터 기록 (전하 충전)</h4>
+                            <button onclick="chargeDRAM()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-cute text-lg rounded-lg shadow-lg transform transition active:scale-95">
+                                데이터 '1' 쓰기 (충전 ⚡)
+                            </button>
+                        </div>
+                        
+                        <div id="dram-status" class="text-sm font-cute text-center text-slate-400 min-h-[44px] flex flex-col items-center justify-center">
+                            소재를 선택하고 충전 버튼을 눌러보세요.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STS Part 3: Korea's DRAM World Dominance & HBM & Hopeful Ending -->
+            <div class="bg-gradient-to-r from-blue-950/70 via-slate-900 to-indigo-950/70 p-6 md:p-8 rounded-2xl border border-blue-500/40 text-center relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 text-9xl text-blue-500/10"><i class="fa-solid fa-globe"></i></div>
+                <div class="relative z-10">
+                    <h3 class="font-cute text-2xl md:text-3xl text-yellow-300 mb-3 flex items-center justify-center gap-2 flex-wrap">
+                        <i class="fa-solid fa-crown text-amber-400 glow-yellow"></i>
+                        대한민국 반도체 산업의 글로벌 위상과 미래
+                        <img src="https://flagcdn.com/w40/kr.png" alt="태극기" class="w-7 h-auto inline-block rounded-xs shadow-sm align-middle ml-1">
+                    </h3>
+                    <p class="text-slate-200 text-base md:text-lg max-w-3xl mx-auto leading-relaxed mb-6">
+                        대한민국의 <strong class="text-sky-400 font-bold drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] text-lg sm:text-xl">삼성전자</strong>와 <strong class="text-pink-300 font-bold drop-shadow-[0_0_8px_rgba(244,114,182,0.7)] text-lg sm:text-xl">SK하이닉스</strong>는 전 세계 DRAM 메모리 시장의 <strong>약 70% 이상</strong>을 점유하고 있는 압도적 세계 1위 국가입니다! 오늘 여러분이 배운 정전기 누설 차단과 유전체 원리는 대한민국을 굳건히 받치는 핵심 기술의 뿌리입니다.
+                    </p>
+                    
+                    <div class="bg-blue-900/40 p-5 rounded-xl border border-blue-400/30 text-left max-w-3xl mx-auto mb-6 backdrop-blur-sm">
+                        <h4 class="font-cute text-xl text-cyan-300 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-purple-400"></i> AI 시대를 이끄는 새로운 혁신, HBM(고대역폭 메모리)
+                        </h4>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            최근 인공지능(AI)이 눈부시게 발전하면서 한 번에 엄청난 양의 데이터를 처리해야 합니다. 이를 위해 DRAM 칩을 아파트처럼 수직으로 여러 층 쌓아 올려 정보가 이동하는 8차선 도로를 1024차선 고속도로로 넓힌 <strong>'HBM(High Bandwidth Memory)'</strong>이 탄생했습니다. 이 첨단 HBM 시장 역시 대한민국이 전 세계를 휩쓸며 AI 혁명 시대의 심장 역할을 톡톡히 하고 있답니다!
+                        </p>
+                    </div>
+
+                    <div class="mt-8 font-cute text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 animate-pulse leading-relaxed">
+                        "이 거대하고 경이로운 미래 첨단 과학 기술을 이끌어갈 다음 세대의 주인공은<br>바로 이 글을 읽고 있는 학생 여러분입니다! ✨"
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Element Detail Modal with Canvas Bohr Atomic Model -->
+        <div id="element-modal" class="history-modal-overlay" onclick="closeElementModal(event)">
+            <div class="history-modal-card p-6 md:p-8 relative max-w-3xl" onclick="event.stopPropagation()">
+                <button onclick="closeElementModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl w-10 h-10 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center transition-colors z-50">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Bohr Model Canvas Container -->
+                    <div class="bg-slate-950 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center min-h-[340px] relative">
+                        <span class="font-cute text-xs text-slate-400 mb-2">실시간 보어(Bohr) 원자 모형 궤도 비행</span>
+                        <canvas id="bohr-canvas" width="300" height="300" class="max-w-full h-auto"></canvas>
+                        <div id="bohr-caption" class="text-xs text-cyan-300 font-cute mt-2 text-center"></div>
+                    </div>
+
+                    <!-- Element Property Info Table -->
+                    <div class="space-y-4">
+                        <div>
+                            <span id="m-num" class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-900/60 text-blue-300 border border-blue-500/40"></span>
+                            <h3 id="m-title" class="font-cute text-3xl text-yellow-300 mt-2"></h3>
+                            <p id="m-eng" class="text-sm text-slate-400 italic"></p>
+                        </div>
+
+                        <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700 space-y-2 text-sm">
+                            <div class="flex justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-slate-400">평균 원자량</span>
+                                <span id="m-weight" class="font-bold text-slate-200"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-slate-400">전자 배치</span>
+                                <span id="m-config" class="font-bold text-cyan-300"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-700/60 pb-1.5">
+                                <span class="text-slate-400">껍질별 전자수</span>
+                                <span id="m-shells" class="font-bold text-purple-300"></span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                            <h4 class="font-cute text-base text-cyan-300 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip"></i> 전자 산업 및 DRAM에서의 쓰임
+                            </h4>
+                            <p id="m-use" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 mb-4 text-center text-xs text-slate-500 font-light tracking-wide">
+            제작자: 해누리중학교 과학교사 남국현
+        </footer>
+
+    </div>
+
+    <script>
+        let synth = null;
+
+        function initAudio() {
+            if (typeof Tone !== 'undefined') {
+                Tone.start();
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -8;
+                }
+            }
+        }
+
+        function startApp() {
+            initAudio();
+            playSound('success');
+            const overlay = document.getElementById('overlay');
+            const app = document.getElementById('app');
+            if (overlay) overlay.classList.add('hidden');
+            if (app) app.classList.remove('hidden');
+            setupCanCharges();
+        }
+
+        function revealBlank(el) {
+            if (el && !el.classList.contains('revealed')) {
+                el.classList.add('revealed');
+                playSound('click', 'G6', '16n');
+            }
+        }
+
+        function playSound(type, note = 'C5', duration = '16n') {
+            if (typeof Tone === 'undefined') return;
+            try {
+                if (!synth) initAudio();
+                if (type === 'click') {
+                    synth.triggerAttackRelease(note || 'C5', duration || '16n');
+                } else if (type === 'spark') {
+                    synth.triggerAttackRelease(note || 'E6', duration || '32n');
+                } else if (type === 'whoosh') {
+                    synth.triggerAttackRelease(note || 'C3', duration || '8n');
+                } else if (type === 'success') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('C5', '8n', now);
+                    synth.triggerAttackRelease('E5', '8n', now + 0.1);
+                    synth.triggerAttackRelease('G5', '8n', now + 0.2);
+                    synth.triggerAttackRelease('C6', '4n', now + 0.3);
+                } else if (type === 'wrong') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('C3', '8n', now);
+                    synth.triggerAttackRelease('F#2', '4n', now + 0.15);
+                } else if (type === 'error-glitch') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('E3', '16n', now);
+                    synth.triggerAttackRelease('C3', '16n', now + 0.08);
+                    synth.triggerAttackRelease('F2', '8n', now + 0.16);
+                }
+            } catch (e) {
+                console.warn('Audio playback error:', e);
+            }
+        }
+
+        // Science History Modal Data
+        const historyData = {
+            electroscope: {
+                title: "📜 윌리엄 길버트와 최초의 검전기 '버살럼(Versorium)'",
+                subtitle: "1600년, 정전기 유도 현상을 감지한 과학 역사상의 기념비!",
+                body: `
+                    <p class="text-slate-200 mb-4 leading-relaxed">
+                        영국의 엘리자베스 1세 여왕의 의사였던 <strong>윌리엄 길버트(William Gilbert)</strong>는 1600년에 출판한 저서 《자석에 대하여(De Magnete)》에서 최초의 정전기 측정 도구인 <strong>'버살럼(Versorium)'</strong>을 발표했습니다.
+                    </p>
+                    <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-500/40 text-sm text-blue-200 space-y-2 mb-4">
+                        <p>💡 <strong>원리:</strong> 피벗(회전축) 위에 얹어놓은 가벼운 금속 회전 바늘로, 마찰한 호박이나 유리 막대를 가까이 대면 정전기 유도에 의해 회전 바늘이 대전체 쪽으로 돌아가는 원리였습니다.</p>
+                        <p>✨ <strong>의의:</strong> 인류가 자석의 끌어당김과 정전기 유도에 의한 이끌림을 최초로 명확히 구분한 역사적 순간이었습니다!</p>
+                    </div>
+                `
+            },
+            aepinus: {
+                title: "📜 에피누스의 정전기 유도 이론 (1759)",
+                subtitle: "닿지 않고도 끌려오는 유체 전기 모델의 완성!",
+                body: `
+                    <p class="text-slate-200 mb-4 leading-relaxed">
+                        러시아의 물리학자 <strong>프란츠 에피누스(Franz Aepinus)</strong>는 도체에 대전체를 접촉시키지 않고 단순히 '가까이 가져가는 것'만으로도 전하가 분리되어 모이는 정전기 유도 현상의 정량적 원리를 수식화하였습니다.
+                    </p>
+                    <div class="bg-purple-950/60 p-4 rounded-xl border border-purple-500/40 text-sm text-purple-200 space-y-2 mb-4">
+                        <p>🏛️ <strong>현대 과학과의 연결:</strong> 당시에는 '전기 유체'의 이동으로 설명하였으나, 훗날 톰슨에 의해 전자가 발견되면서 <strong>"가벼운 전자(-)의 이동 및 인력/척력 작용"</strong>으로 완벽하게 정리되었습니다!</p>
+                    </div>
+                `
+            }
+        };
+
+        function openHistoryModal(key) {
+            const data = historyData[key];
+            if (!data) return;
+
+            playSound('click', 'G5');
+            const modal = document.getElementById('history-modal');
+            const content = document.getElementById('history-modal-content');
+
+            content.innerHTML = `
+                <div class="mb-4">
+                    <h3 class="font-cute text-2xl md:text-3xl text-yellow-300">${data.title}</h3>
+                    <p class="text-sm text-blue-300 font-bold mt-1">${data.subtitle}</p>
+                </div>
+                <hr class="border-slate-700/80 mb-4">
+                ${data.body}
+                <div class="text-right mt-6">
+                    <button onclick="closeHistoryModal()" class="font-cute bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full hover:scale-105 transition-transform">
+                        닫기 👍
+                    </button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeHistoryModal(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
+            const modal = document.getElementById('history-modal');
+            modal.classList.remove('active');
+        }
+
+        function openTab(tabId) {
+            playSound('click', 'E5');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+        }
+
+        // ==========================================
+        // LAB 1 & 2 DRAG AND DROP SIMULATION LOGIC
+        // ==========================================
+        let currentRodType = 'straw';
+        const dragRod = document.getElementById('drag-rod');
+        const aluminumCan = document.getElementById('aluminum-can');
+        const expArea1 = document.getElementById('exp-area-1');
+        const forceArrow = document.getElementById('force-arrow');
+
+        function selectRod(type) {
+            currentRodType = type;
+            playSound('click', 'A5');
+
+            const btnStraw = document.getElementById('btn-straw');
+            const btnFur = document.getElementById('btn-fur');
+            const rodLabel = document.getElementById('rod-label');
+            const rodSigns = document.getElementById('rod-signs');
+
+            if (type === 'straw') {
+                btnStraw.className = "font-cute px-5 py-2.5 rounded-xl bg-blue-600 text-white border-2 border-blue-300 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all";
+                btnFur.className = "font-cute px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 border-2 border-slate-600 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all";
+                dragRod.className = "charged-rod rod-minus";
+                rodLabel.innerText = "(-) 플라스틱 빨대";
+                rodSigns.innerHTML = `<span class="text-white font-bold">-</span><span class="text-white font-bold">-</span><span class="text-white font-bold">-</span>`;
+            } else {
+                btnFur.className = "font-cute px-5 py-2.5 rounded-xl bg-red-600 text-white border-2 border-red-300 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all";
+                btnStraw.className = "font-cute px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 border-2 border-slate-600 shadow-lg text-lg flex items-center gap-2 hover:scale-105 transition-all";
+                dragRod.className = "charged-rod rod-plus";
+                rodLabel.innerText = "(+) 대전된 털가죽";
+                rodSigns.innerHTML = `<span class="text-white font-bold">+</span><span class="text-white font-bold">+</span><span class="text-white font-bold">+</span>`;
+            }
+
+            dragRod.style.left = '10%';
+            dragRod.style.top = '180px';
+            aluminumCan.style.left = '55%';
+            updateCanCharges(0);
+        }
+
+        function setupCanCharges() {
+            const topDiv = document.getElementById('can-charges-top');
+            const bottomDiv = document.getElementById('can-charges-bottom');
+            if (!topDiv || !bottomDiv) return;
+
+            topDiv.innerHTML = `
+                <div class="charge-particle particle-plus">+</div>
+                <div class="charge-particle particle-minus" id="e1">-</div>
+                <div class="charge-particle particle-plus">+</div>
+                <div class="charge-particle particle-minus" id="e2">-</div>
+            `;
+            bottomDiv.innerHTML = `
+                <div class="charge-particle particle-plus">+</div>
+                <div class="charge-particle particle-minus" id="e3">-</div>
+                <div class="charge-particle particle-plus">+</div>
+                <div class="charge-particle particle-minus" id="e4">-</div>
+            `;
+        }
+
+        let isDraggingRod = false;
+        let rodOffset = { x: 0, y: 0 };
+
+        if (dragRod) {
+            dragRod.addEventListener('mousedown', startRodDrag);
+            dragRod.addEventListener('touchstart', startRodDrag, { passive: false });
+        }
+        document.addEventListener('mousemove', dragRodMove);
+        document.addEventListener('touchmove', dragRodMove, { passive: false });
+        document.addEventListener('mouseup', endRodDrag);
+        document.addEventListener('touchend', endRodDrag);
+
+        function startRodDrag(e) {
+            isDraggingRod = true;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const rect = dragRod.getBoundingClientRect();
+            rodOffset.x = clientX - rect.left;
+            rodOffset.y = clientY - rect.top;
+        }
+
+        function dragRodMove(e) {
+            if (!isDraggingRod || !expArea1) return;
+            e.preventDefault();
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const areaRect = expArea1.getBoundingClientRect();
+
+            let newX = clientX - areaRect.left - rodOffset.x;
+            let newY = clientY - areaRect.top - rodOffset.y;
+
+            newX = Math.max(0, Math.min(newX, areaRect.width - dragRod.offsetWidth));
+            newY = Math.max(0, Math.min(newY, areaRect.height - dragRod.offsetHeight));
+
+            dragRod.style.left = `${newX}px`;
+            dragRod.style.top = `${newY}px`;
+
+            checkRodApproach();
+        }
+
+        function endRodDrag() {
+            isDraggingRod = false;
+        }
+
+        function checkRodApproach() {
+            if (!aluminumCan || !dragRod) return;
+            const rodRect = dragRod.getBoundingClientRect();
+            const canRect = aluminumCan.getBoundingClientRect();
+            const dist = canRect.left - rodRect.right;
+
+            if (dist < 160 && dist > 0) {
+                const intensity = (160 - dist) / 160;
+                updateCanCharges(intensity);
+
+                let canLeft = parseFloat(aluminumCan.style.left) || 55;
+                if (dist > 20) {
+                    canLeft -= intensity * 1.5;
+                    aluminumCan.style.left = `${canLeft}%`;
+                }
+
+                forceArrow.style.opacity = intensity;
+                forceArrow.style.left = `${rodRect.right - expArea1.getBoundingClientRect().left + 10}px`;
+                forceArrow.style.width = `${Math.max(20, dist - 10)}px`;
+
+                if (canLeft < 40) {
+                    document.getElementById('quiz-scene-1').classList.remove('hidden');
+                }
+            } else {
+                updateCanCharges(0);
+                forceArrow.style.opacity = 0;
+            }
+        }
+
+        function updateCanCharges(intensity) {
+            const e1 = document.getElementById('e1');
+            const e2 = document.getElementById('e2');
+            const e3 = document.getElementById('e3');
+            const e4 = document.getElementById('e4');
+
+            if (!e1) return;
+
+            if (currentRodType === 'straw') {
+                const shiftX = intensity * 25;
+                e1.style.transform = `translateX(${shiftX}px)`;
+                e2.style.transform = `translateX(${shiftX}px)`;
+                e3.style.transform = `translateX(${shiftX}px)`;
+                e4.style.transform = `translateX(${shiftX}px)`;
+            } else {
+                const shiftX = -intensity * 25;
+                e1.style.transform = `translateX(${shiftX}px)`;
+                e2.style.transform = `translateX(${shiftX}px)`;
+                e3.style.transform = `translateX(${shiftX}px)`;
+                e4.style.transform = `translateX(${shiftX}px)`;
+            }
+        }
+
+        function checkLabQuiz(step, isCorrect) {
+            const fb = document.getElementById('feedback-1');
+            fb.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('success');
+                fb.innerHTML = "<span class='text-green-400'>정답입니다! 👏 (-)전하의 척력으로 전자가 멀어지고 인력으로 캔이 끌려옵니다.</span>";
+                setTimeout(() => {
+                    document.getElementById('lab-scene-1').classList.add('hidden');
+                    document.getElementById('lab-scene-2').classList.remove('hidden');
+
+                    document.getElementById('step-nav-1').className = "font-cute px-4 sm:px-6 py-2 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700";
+                    document.getElementById('step-nav-2').className = "font-cute px-4 sm:px-6 py-2 rounded-full bg-purple-500 text-white font-bold border-2 border-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.5)]";
+                }, 2200);
+            } else {
+                playSound('wrong');
+                fb.innerHTML = "<span class='text-red-400'>오답입니다. 전자는 같은 (-)전하로부터 밀려난다는 원리를 생각해보세요!</span>";
+            }
+        }
+
+        function triggerElectroscope(mode) {
+            const leafLeft = document.getElementById('leaf-left');
+            const leafRight = document.getElementById('leaf-right');
+            const knob = document.getElementById('metal-knob');
+            const status = document.getElementById('electroscope-status');
+
+            if (mode === 'minus') {
+                playSound('spark', 'A5');
+                knob.style.backgroundColor = '#38bdf8';
+                leafLeft.style.transform = 'rotate(-38deg)';
+                leafRight.style.transform = 'rotate(38deg)';
+                status.innerHTML = "<span class='text-blue-300 font-bold'>(-)대전체 접근 ➡️ 전자가 하단 금속 박으로 이동 ➡️ 같은 (-)전하 척력으로 금속 박이 넓게 벌어짐!</span>";
+            } else if (mode === 'plus') {
+                playSound('spark', 'E6');
+                knob.style.backgroundColor = '#ef4444';
+                leafLeft.style.transform = 'rotate(-38deg)';
+                leafRight.style.transform = 'rotate(38deg)';
+                status.innerHTML = "<span class='text-red-300 font-bold'>(+)대전체 접근 ➡️ 전자가 상단 금속판으로 끌려옴 ➡️ 하단 금속 박은 (+)전하 우세로 척력 벌어짐!</span>";
+            } else {
+                playSound('click', 'C4');
+                knob.style.backgroundColor = '#94a3b8';
+                leafLeft.style.transform = 'rotate(0deg)';
+                leafRight.style.transform = 'rotate(0deg)';
+                status.innerText = "대전체를 멀리 치우면 금속 박이 다시 닿아 오므라듭니다.";
+            }
+        }
+
+        function checkQuiz() {
+            const inputs = document.querySelectorAll('.q-box');
+            let allCorrect = true;
+
+            inputs.forEach(input => {
+                const userAns = input.value.replace(/\s+/g, '').toLowerCase();
+                const correctAns = input.dataset.answer.replace(/\s+/g, '').toLowerCase();
+
+                if (userAns === correctAns) {
+                    input.classList.add('correct');
+                    input.classList.remove('wrong');
+                } else {
+                    input.classList.add('wrong');
+                    input.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+
+            const msg = document.getElementById('quiz-msg');
+            msg.classList.remove('hidden');
+
+            if (allCorrect) {
+                playSound('success');
+                msg.innerHTML = "🎉 축하합니다! 정전기 유도 단원의 완벽 마스터가 되셨습니다! 🏆";
+                msg.className = "font-bold text-3xl mt-6 text-green-400 animate-float font-cute glow-green";
+            } else {
+                playSound('wrong');
+                msg.innerHTML = "🤔 아쉽습니다! 붉은색 입력칸의 초성 힌트(ㅈㅈ: 전자, ㅁ: 먼, ㅇㄹ: 인력)를 참고해 다시 풀어보세요.";
+                msg.className = "font-bold text-2xl mt-6 text-red-400 font-cute";
+            }
+        }
+
+        document.querySelectorAll('.q-box').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('wrong');
+                this.classList.remove('correct');
+            });
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') checkQuiz();
+            });
+        });
+
+        // ==========================================
+        // STS ELEMENT MODAL & BOHR MODEL ANIMATION
+        // ==========================================
+        const elementData = {
+            Zr: {
+                symbol: "Zr",
+                num: 40,
+                title: "지르코늄 (Zirconium)",
+                eng: "Zirconium (원자번호 40, 전이금속)",
+                weight: "91.224 u",
+                config: "[Kr] 4d² 5s²",
+                shells: [2, 8, 18, 10, 2],
+                color: "#38bdf8",
+                use: "지르코늄 산화물(ZrO₂)은 얇은 두께에서도 전하를 꽉 끌어당기는 성질이 뛰어난 고유전율(High-k) 절연체입니다. 전자가 밖으로 새어 나가는 <strong>'누설 전류'</strong>를 완벽히 막아내어 초고속 반도체 동작을 가능하게 해줍니다!"
+            },
+            Hf: {
+                symbol: "Hf",
+                num: 72,
+                title: "하프늄 (Hafnium)",
+                eng: "Hafnium (원자번호 72, 희귀 전이금속)",
+                weight: "178.49 u",
+                config: "[Xe] 4f¹⁴ 5d² 6s²",
+                shells: [2, 8, 18, 32, 10, 2],
+                color: "#c084fc",
+                use: "하프늄 산화물(HfO₂)은 기존 실리콘 산화막 대비 전하를 보존하는 능력이 수 배 이상 뛰어난 차세대 고유전율(High-k) 신소재입니다. 반도체 미세화 과정에서 발생하는 정전기적 누설 전류를 획기적으로 줄여주는 일등공신입니다!"
+            }
+        };
+
+        let animFrameId = null;
+        let angle = 0;
+
+        function openElementModal(symbol) {
+            const data = elementData[symbol];
+            if (!data) return;
+
+            playSound('click', 'A5');
+            const modal = document.getElementById('element-modal');
+
+            document.getElementById('m-num').innerText = `원자번호 ${data.num}`;
+            document.getElementById('m-title').innerText = `${data.title} (${data.symbol})`;
+            document.getElementById('m-eng').innerText = data.eng;
+            document.getElementById('m-weight').innerText = data.weight;
+            document.getElementById('m-config').innerText = data.config;
+            document.getElementById('m-shells').innerText = data.shells.join(', ');
+            document.getElementById('m-use').innerHTML = data.use;
+
+            modal.classList.add('active');
+            
+            // Start Bohr Atomic Model Animation
+            startBohrAnimation(data);
+        }
+
+        function closeElementModal(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
+            const modal = document.getElementById('element-modal');
+            modal.classList.remove('active');
+            if (animFrameId) {
+                cancelAnimationFrame(animFrameId);
+                animFrameId = null;
+            }
+        }
+
+        function startBohrAnimation(data) {
+            const canvas = document.getElementById('bohr-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const caption = document.getElementById('bohr-caption');
+            caption.innerText = `${data.symbol} 원자핵 주변 ${data.shells.length}개 전자 껍질 (총 ${data.num}개 전자 비행)`;
+
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Draw Glowing Nucleus
+                const gradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 25);
+                gradient.addColorStop(0, '#facc15');
+                gradient.addColorStop(0.6, '#eab308');
+                gradient.addColorStop(1, 'rgba(234, 179, 8, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 13px Jua';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`+${data.num} ${data.symbol}`, centerX, centerY);
+
+                // Draw Shell Orbits and Orbiting Electrons
+                const baseRadius = 35;
+                const radiusStep = (canvas.width / 2 - 45) / data.shells.length;
+
+                data.shells.forEach((electronCount, shellIdx) => {
+                    const radius = baseRadius + shellIdx * radiusStep;
+
+                    // Orbit Ring
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Electrons on this shell
+                    const speedMultiplier = (data.shells.length - shellIdx) * 0.4 + 0.5;
+                    const currentAngle = angle * speedMultiplier * (shellIdx % 2 === 0 ? 1 : -1);
+
+                    for (let i = 0; i < electronCount; i++) {
+                        const electronAngle = currentAngle + (i * Math.PI * 2) / electronCount;
+                        const ex = centerX + Math.cos(electronAngle) * radius;
+                        const ey = centerY + Math.sin(electronAngle) * radius;
+
+                        // Electron Glow
+                        ctx.fillStyle = data.color;
+                        ctx.shadowColor = data.color;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(ex, ey, 3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    }
+                });
+
+                angle += 0.015;
+                animFrameId = requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        // ==========================================
+        // DRAM VIRTUAL LAB LOGIC (IMPROVED LEAKAGE & SOUND)
+        // ==========================================
+        let dramMaterial = 'normal'; // 'normal' or 'highk'
+        let dramTimeout = null;
+
+        function setDielectric(type) {
+            playSound('click', 'C5');
+            dramMaterial = type;
+            const btnNormal = document.getElementById('btn-mat-normal');
+            const btnHighk = document.getElementById('btn-mat-highk');
+            const layer = document.getElementById('dram-dielectric-layer');
+            const label = document.getElementById('dielectric-label');
+            const status = document.getElementById('dram-status');
+            const capacitorBox = document.querySelector('.dram-capacitor');
+            
+            // Reset charges & animations
+            document.getElementById('dram-charge-container').innerHTML = '';
+            clearTimeout(dramTimeout);
+            if (capacitorBox) capacitorBox.classList.remove('dram-error-shake');
+
+            if (type === 'normal') {
+                btnNormal.className = "flex-1 py-1.5 text-xs font-bold bg-slate-600 text-white rounded-md transition-colors";
+                btnHighk.className = "flex-1 py-1.5 text-xs font-bold text-slate-400 hover:bg-slate-700 rounded-md transition-colors";
+                layer.style.background = "rgba(148, 163, 184, 0.2)";
+                layer.style.boxShadow = "none";
+                label.innerHTML = "일반 절연체<br><span class='text-xs'>(SiO₂)</span>";
+                label.style.color = "#94a3b8";
+                status.innerHTML = "<span>일반 절연체(SiO₂)가 선택되었습니다.</span><span class='text-xs text-slate-400'>두께가 얇아지면 전하 누설을 막기 어렵습니다.</span>";
+            } else {
+                btnHighk.className = "flex-1 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-md transition-colors shadow-[0_0_10px_rgba(168,85,247,0.5)]";
+                btnNormal.className = "flex-1 py-1.5 text-xs font-bold text-slate-400 hover:bg-slate-700 rounded-md transition-colors";
+                layer.style.background = "rgba(168, 85, 247, 0.25)";
+                layer.style.boxShadow = "inset 0 0 20px rgba(168,85,247,0.4)";
+                label.innerHTML = "High-k 신소재<br><span class='text-xs font-sans'>(ZrO₂, HfO₂)</span>";
+                label.style.color = "#d8b4fe";
+                status.innerHTML = "<span>강력한 전하 차단막 신소재가 선택되었습니다.</span><span class='text-xs text-purple-300'>전하 누설을 철통같이 막아 데이터를 지킵니다!</span>";
+            }
+        }
+
+        function chargeDRAM() {
+            playSound('spark', 'E6');
+            const container = document.getElementById('dram-charge-container');
+            const status = document.getElementById('dram-status');
+            const capacitorBox = document.querySelector('.dram-capacitor');
+
+            // Clear previous states
+            container.innerHTML = '';
+            clearTimeout(dramTimeout);
+            capacitorBox.classList.remove('dram-error-shake');
+
+            // Add 9 charges
+            for(let i=0; i<9; i++) {
+                const charge = document.createElement('div');
+                charge.className = 'dram-charge';
+                charge.innerText = '+';
+                container.appendChild(charge);
+            }
+
+            if (dramMaterial === 'normal') {
+                setTimeout(() => {
+                    playSound('error-glitch');
+                    capacitorBox.classList.add('dram-error-shake');
+                    status.innerHTML = "<span class='text-red-400 font-bold text-base animate-pulse'>⚠️ 앗! 누설 전류 발생 (데이터 손상!)</span><span class='text-slate-300 text-xs'>차단막이 얇아 전하가 흘러나가 데이터 '1'이 '0'으로 지워집니다!</span>";
+                }, 300);
+
+                // Animate leak with dropping & sparkle effect
+                const charges = document.querySelectorAll('.dram-charge');
+                charges.forEach((c, i) => {
+                    setTimeout(() => {
+                        c.classList.add('dram-leak-anim');
+                    }, 400 + (i * 120));
+                });
+
+                dramTimeout = setTimeout(() => {
+                    container.innerHTML = '<div class="text-xs text-red-400 font-bold animate-pulse">데이터 \'0\' (손상됨)</div>';
+                    capacitorBox.classList.remove('dram-error-shake');
+                }, 2200);
+
+            } else {
+                status.innerHTML = "<span class='text-green-400 font-bold text-base'>⚡ 데이터 '1' 완벽 보존!</span><span class='text-slate-300 text-xs'>High-k 신소재 절연막이 누설 전류를 든든하게 막아냅니다.</span>";
+                playSound('success');
+
+                // Bounce animation showing strong charge hold
+                const charges = document.querySelectorAll('.dram-charge');
+                charges.forEach((c, i) => {
+                    setTimeout(() => {
+                        c.style.transform = "scale(1.25)";
+                        setTimeout(() => c.style.transform = "scale(1)", 200);
+                    }, i * 40);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
