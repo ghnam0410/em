@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7.2.1. 전하의 흐름, 전류 ⚡</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Fonts (Jua for titles, Gowun Dodum for body readability) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-darker: #020617; 
+            --panel-bg: rgba(30, 41, 59, 0.75); 
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-pink: #f472b6;
+            --neon-yellow: #facc15;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-darker);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.1), transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(250, 204, 21, 0.1), transparent 30%),
+                radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.05), transparent 40%);
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-blue { text-shadow: 0 0 12px rgba(56,189,248,0.7), 0 0 24px rgba(56,189,248,0.4); }
+        .glow-yellow { text-shadow: 0 0 12px rgba(250,204,21,0.7), 0 0 24px rgba(250,204,21,0.4); }
+        .glow-green { text-shadow: 0 0 12px rgba(52,211,153,0.7), 0 0 24px rgba(52,211,153,0.4); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(250,204,21,0.4); }
+            50% { box-shadow: 0 0 30px rgba(250,204,21,0.8); }
+        }
+
+        .concept-blank {
+            display: inline-block;
+            background: rgba(250, 204, 21, 0.12);
+            color: transparent;
+            border-bottom: 3px dashed var(--neon-yellow);
+            padding: 0 12px;
+            margin: 0 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!';
+            position: absolute;
+            left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-yellow);
+            font-size: 0.85rem;
+            font-family: 'Jua';
+            opacity: 0.8;
+            animation: pulse-glow 1.5s infinite alternate;
+        }
+        .concept-blank.revealed {
+            background: rgba(250, 204, 21, 0.22);
+            color: var(--neon-yellow);
+            border-bottom: 3px solid var(--neon-yellow);
+            text-shadow: 0 0 10px rgba(250,204,21,0.5);
+            transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { content: ''; display: none; }
+
+        .nav-btn {
+            position: relative; overflow: hidden; transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #eab308, #f59e0b);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        .exp-container {
+            position: relative; width: 100%; height: 500px;
+            background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+            border-radius: 20px; border: 2px solid #334155;
+            overflow: hidden; user-select: none;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
+        }
+
+        .plastic-cup {
+            position: absolute; width: 80px; height: 100px;
+            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
+            border-bottom: none; border-radius: 10px 10px 0 0;
+            left: 50%; bottom: 50px; transform: translateX(-50%);
+        }
+        .aluminum-cup {
+            position: absolute; width: 90px; height: 80px;
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 50%, #64748b 100%);
+            border-radius: 10px 10px 0 0;
+            left: 50%; bottom: 150px; transform: translateX(-50%);
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.5), 0 10px 20px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .balloon-draggable {
+            position: absolute; width: 70px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: grab; z-index: 50;
+            left: 10%; top: 30%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .balloon-draggable:active { cursor: grabbing; transform: scale(0.95); }
+        .balloon-tail {
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 15px solid #991b1b;
+        }
+        
+        .neon-bulb {
+            position: absolute; width: 30px; height: 50px;
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 15px 15px 0 0;
+            left: 75%; bottom: 200px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.1s;
+        }
+        .neon-bulb.on {
+            background: rgba(250, 204, 21, 0.8);
+            box-shadow: 0 0 30px #facc15, 0 0 60px #facc15;
+            border-color: #fef08a;
+        }
+        .bulb-wire {
+            position: absolute; width: 4px; height: 80px; background: #94a3b8;
+            left: 50%; bottom: -80px; transform: translateX(-50%);
+        }
+        .hand-cursor {
+            position: absolute; font-size: 2rem; color: #fca5a5;
+            left: 70%; bottom: 120px; transition: transform 0.3s;
+            pointer-events: none; z-index: 60;
+        }
+
+        .charge-marker {
+            position: absolute; font-family: 'Jua'; font-weight: bold; font-size: 14px;
+            pointer-events: none; transition: opacity 0.2s;
+        }
+        .charge-minus { color: #38bdf8; text-shadow: 0 0 5px #0284c7; }
+        
+        @keyframes spark {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(2); }
+        }
+        .spark-effect {
+            position: absolute; width: 20px; height: 20px;
+            background: #facc15; border-radius: 50%;
+            box-shadow: 0 0 15px #facc15;
+            animation: spark 0.3s ease-out forwards;
+            pointer-events: none; z-index: 100;
+        }
+
+        .split-view {
+            display: flex; height: 100%;
+        }
+        .split-pane {
+            flex: 1; position: relative;
+            border-right: 1px dashed rgba(255,255,255,0.2);
+            padding: 10px;
+        }
+        .split-pane:last-child { border-right: none; }
+        
+        .pipe-path, .wire-path {
+            position: absolute; border: 15px solid;
+            border-radius: 20px;
+        }
+        
+        .pipe-path { border-color: rgba(56, 189, 248, 0.3); }
+        .water-flow-container {
+            position: absolute; inset: -15px; border-radius: 20px; overflow: hidden;
+            pointer-events: none;
+        }
+        .pump {
+            position: absolute; width: 60px; height: 60px;
+            background: #475569; border-radius: 50%;
+            border: 4px solid #94a3b8;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10;
+        }
+        .pump-rotor {
+            width: 40px; height: 40px; border: 3px dashed #cbd5e1; border-radius: 50%;
+            transition: transform 0.1s linear;
+        }
+        .water-wheel {
+            position: absolute; width: 50px; height: 50px;
+            background: #8b5cf6; border-radius: 50%; border: 4px solid #c4b5fd;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10; transition: transform 0.1s linear;
+        }
+        .valve {
+            position: absolute; width: 40px; height: 20px; background: #ef4444;
+            cursor: pointer; z-index: 15; transition: transform 0.3s;
+            border-radius: 4px;
+        }
+        .valve.open { transform: rotate(90deg); background: #22c55e; }
+        
+        .wire-path { border-color: rgba(250, 204, 21, 0.3); }
+        .electron-particle {
+            position: absolute; width: 12px; height: 12px;
+            background: #fca5a5; color: #991b1b; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 10px; font-weight: bold; font-family: 'Jua';
+            box-shadow: 0 0 8px #ef4444;
+            transition: all 0.1s linear;
+        }
+        .battery {
+            position: absolute; width: 60px; height: 80px;
+            background: linear-gradient(to bottom, #1e293b 50%, #dc2626 50%);
+            border: 3px solid #94a3b8; border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; padding: 5px 0; z-index: 10;
+        }
+        .battery::before { content: '-'; color: white; font-weight: bold; font-size: 20px; }
+        .battery::after { content: '+'; color: white; font-weight: bold; font-size: 20px; }
+        
+        .lightbulb {
+            position: absolute; width: 40px; height: 40px;
+            background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #cbd5e1;
+            z-index: 10; transition: background 0.2s, box-shadow 0.2s;
+        }
+        .lightbulb.on {
+            background: rgba(250, 204, 21, 0.9); box-shadow: 0 0 30px #facc15;
+        }
+        .switch {
+            position: absolute; width: 50px; height: 15px; background: #475569;
+            cursor: pointer; z-index: 15; transform-origin: left center;
+            transition: transform 0.3s;
+        }
+        .switch.closed { transform: rotate(0deg); background: #22c55e; }
+        .switch.open { transform: rotate(-30deg); background: #ef4444; }
+
+        .break-point {
+            position: absolute; width: 20px; height: 20px;
+            background: #ef4444; border-radius: 50%; cursor: pointer;
+            z-index: 20; display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 12px; border: 2px solid white;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+        }
+        
+        .water-leak {
+            position: absolute; width: 10px; height: 10px; background: #38bdf8;
+            border-radius: 50%; pointer-events: none; z-index: 5;
+            animation: leak 1s linear infinite;
+        }
+        @keyframes leak {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.5); opacity: 0; }
+        }
+
+        .q-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: none; border-bottom: 2px dashed var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 4px 8px; font-weight: bold; text-align: center;
+            width: 120px; transition: all 0.3s;
+        }
+        .q-box:focus { outline: none; border-bottom-style: solid; box-shadow: 0 10px 10px -10px var(--neon-yellow); }
+        .q-box.correct { border-bottom-color: var(--neon-green); color: var(--neon-green); background: rgba(52, 211, 153, 0.15); }
+        .q-box.wrong { border-bottom-color: var(--neon-pink); color: var(--neon-pink); background: rgba(244, 114, 182, 0.15); }
+
+        #history-modal {
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+        .history-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid #eab308;
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+        }
+
+        .water-molecule {
+            position: absolute; width: 16px; height: 16px;
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.1s linear; z-index: 5;
+        }
+        .atom-o {
+            width: 12px; height: 12px; background: #ef4444; border-radius: 50%;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), 0 0 5px #b91c1c; z-index: 2;
+        }
+        .atom-h {
+            width: 7px; height: 7px; background: #f8fafc; border-radius: 50%;
+            box-shadow: inset -1px -1px 2px rgba(0,0,0,0.3); position: absolute; z-index: 1;
+        }
+        .atom-h1 { top: -2px; left: -1px; }
+        .atom-h2 { top: -2px; right: -1px; }
+
+        .fixed-atom {
+            width: 24px; height: 24px; background: radial-gradient(circle at 30% 30%, #fca5a5, #dc2626);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 1;
+        }
+        .moving-electron {
+            width: 16px; height: 16px; background: radial-gradient(circle at 30% 30%, #93c5fd, #2563eb);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 10px;
+            box-shadow: 0 0 8px #3b82f6; z-index: 2;
+        }
+
+        @keyframes moveLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .electron-flow {
+            animation: moveLeft 3s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="history-modal" class="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/80 hidden opacity-0 pointer-events-none">
+        <div class="history-content rounded-2xl max-w-lg w-full mx-4 p-6 relative transform scale-95 transition-transform duration-300">
+            <button onclick="closeHistory()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="history-title" class="font-cute text-2xl text-yellow-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> <span id="history-title-text">과학사 이야기</span>
+            </h3>
+            <div id="history-body" class="text-slate-200 text-lg leading-relaxed space-y-3">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="mt-6 text-center">
+                <button onclick="closeHistory()" class="font-cute bg-slate-700 hover:bg-slate-600 text-white py-2 px-6 rounded-lg transition-colors">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950 px-4">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-bolt text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]"></i>
+                <i class="fa-solid fa-lightbulb text-yellow-200 drop-shadow-[0_0_20px_rgba(253,224,71,0.8)]"></i>
+                <i class="fa-solid fa-water text-blue-400 drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"></i>
+            </div>
+            <h1 class="text-center font-cute text-3xl sm:text-5xl md:text-6xl text-white mb-6 glow-yellow tracking-wider">7.2.1. 전하의 흐름, 전류</h1>
+            <p class="text-xl md:text-2xl text-slate-300 mb-8 font-light">전류의 정체와 전기 회로의 비밀을 밝혀라! 💡</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-xl">
+                <h3 class="font-cute text-2xl text-yellow-300 mb-3 text-center">💡 학습 단계 안내</h3>
+                <ul class="text-slate-200 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 1단계: 전류와 전자의 이동 방향 이해</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 2단계: [실험] 네온전구 불 켜기</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 3단계: [비교] 물의 흐름 vs 전기 회로</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 4단계: 핵심 정리 퀴즈</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:to-red-400 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-[0_0_35px_rgba(250,204,21,0.6)] transition-transform hover:scale-105 active:scale-95">
+                가상 실험실 입장 🚀
+            </button>
+            <p class="mt-5 text-slate-400 text-sm animate-pulse"><i class="fa-solid fa-headphones"></i> 음향 효과가 켜져 있습니다.</p>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8">
+            <h1 class="font-cute text-4xl md:text-5xl text-white glow-yellow">💡 전하의 흐름, 전류</h1>
+            <p class="text-slate-400 mt-2 font-cute text-lg">중학교 2학년 과학 7.2.1단원</p>
+        </header>
+
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 glass-panel p-2">
+            <button onclick="openTab('theory')" id="btn-theory" class="nav-btn active font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">1단계: 개념 파헤치기</button>
+            <button onclick="openTab('lab1')" id="btn-lab1" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">2단계: 네온전구 실험</button>
+            <button onclick="openTab('lab2')" id="btn-lab2" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">3단계: 물과 회로 비교</button>
+            <button onclick="openTab('summary')" id="btn-summary" class="nav-btn font-cute text-base sm:text-lg py-3 px-3 rounded-xl text-slate-300">4단계: 심화 퀴즈</button>
+        </nav>
+
+        <section id="tab-theory" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-yellow-900/30 border border-yellow-500/50 p-4 rounded-xl mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-circle-info text-yellow-400 text-2xl"></i>
+                <p class="text-slate-200"><strong class="text-yellow-300">점선 빈칸</strong>을 클릭해 핵심 개념을 확인하세요!</p>
+            </div>
+
+            <div class="space-y-10">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <h2 class="font-cute text-3xl md:text-4xl text-yellow-400 flex items-center gap-3">
+                            <i class="fa-solid fa-bolt"></i> 1. 전류란 무엇일까?
+                        </h2>
+                        <button onclick="showHistory('ampere')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm py-1.5 px-3 rounded-full font-cute shadow-lg transition-transform hover:scale-105 ml-auto">
+                            <i class="fa-solid fa-book-journal-whills"></i> 과학사 알아보기
+                        </button>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-lg space-y-4">
+                        <p>
+                            도선을 따라 흐르는 <strong>전하의 흐름</strong>을 <span class="concept-blank" onclick="revealBlank(this)">전류</span>라고 합니다. 
+                        </p>
+                        <p>
+                            전류의 단위는 <span class="concept-blank" onclick="revealBlank(this)">A(암페어)</span>를 사용합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <h2 class="font-cute text-3xl md:text-4xl text-blue-400 flex items-center gap-3">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i> 2. 전류와 전자의 이동 방향
+                        </h2>
+                        <button onclick="showHistory('direction')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm py-1.5 px-3 rounded-full font-cute shadow-lg transition-transform hover:scale-105 ml-auto">
+                            <i class="fa-solid fa-book-journal-whills"></i> 과학사 알아보기
+                        </button>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            <div class="space-y-4">
+                                <p>과거에는 전류가 (+)극에서 (-)극으로 흐른다고 약속했습니다.</p>
+                                <p>하지만 나중에 실제로 도선 안에서 이동하는 것은 <strong>(-)전하를 띤 <span class="concept-blank" onclick="revealBlank(this)">전자</span></strong>라는 사실이 밝혀졌습니다.</p>
+                                <div class="bg-red-950/40 p-4 rounded-lg border border-red-500/50">
+                                    <ul class="list-disc pl-5 text-red-200">
+                                        <li><strong>전자의 이동 방향:</strong> <span class="font-bold text-white">(-)극 ➡️ (+)극</span></li>
+                                        <li><strong>전류의 방향:</strong> <span class="font-bold text-white">(+)극 ➡️ (-)극</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-600 relative h-60 flex justify-center items-center flex-col">
+                                <div class="w-full flex justify-between px-4 mb-3">
+                                    <span class="text-red-500 font-bold text-xl">(+) 극</span>
+                                    <span class="text-blue-500 font-bold text-xl">(-) 극</span>
+                                </div>
+                                <div class="w-full h-20 bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700 rounded-lg relative overflow-hidden flex items-center border-y-4 border-slate-400 shadow-inner">
+                                    <div class="absolute inset-0 flex justify-around items-center px-4 opacity-50">
+                                        <div class="fixed-atom">+</div>
+                                        <div class="fixed-atom">+</div>
+                                        <div class="fixed-atom">+</div>
+                                        <div class="fixed-atom">+</div>
+                                        <div class="fixed-atom">+</div>
+                                    </div>
+                                    <div class="w-[200%] flex justify-around text-blue-300 absolute left-0 electron-flow">
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                        <div class="moving-electron">-</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex flex-col w-full px-4 gap-2">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-blue-400 font-bold">실제 전자의 이동</span>
+                                        <i class="fa-solid fa-long-arrow-alt-left text-blue-400 text-2xl"></i>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-yellow-400 font-bold">약속한 전류의 방향</span>
+                                        <i class="fa-solid fa-long-arrow-alt-right text-yellow-400 text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab1')" class="font-cute bg-yellow-500 hover:bg-yellow-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(234,179,8,0.5)] transition-all hover:scale-105">
+                    개념 확인 끝! 가상 실험실로 이동 🧪 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-lab1" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 md:p-8 relative">
+                <div class="flex flex-wrap justify-between items-center mb-2 gap-4">
+                    <h2 class="font-cute text-3xl text-yellow-400 glow-yellow">
+                        <i class="fa-solid fa-flask"></i> 해보기: 네온전구에 불이 켜지는 까닭 알아보기
+                    </h2>
+                    <button onclick="resetLab1()" class="font-cute bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg shadow transition-colors">
+                        <i class="fa-solid fa-rotate-right"></i> 실험 다시 하기
+                    </button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-sm sm:text-base mb-6 text-slate-300">
+                    <p class="mb-2"><strong>실험 목표:</strong> 마찰 전기로 전구에 불을 켜 보고, 그 까닭을 전하의 이동과 관련지어 설명할 수 있다.</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-hand-pointer text-yellow-400 animate-bounce"></i> <strong>방법:</strong> 털가죽으로 마찰해 (-)로 대전된 고무풍선을 드래그하여 알루미늄 컵에 대보세요!</p>
+                </div>
+
+                <div class="exp-container" id="exp-area-neon">
+                    <div class="absolute bottom-10 left-0 right-0 h-4 bg-slate-700/60 border-t border-slate-500"></div>
+                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-cute text-slate-400">책상</div>
+
+                    <div class="plastic-cup"></div>
+                    <div class="aluminum-cup" id="alu-cup">
+                        <span class="font-cute text-slate-800 text-sm">알루미늄 컵</span>
+                    </div>
+
+                    <div class="neon-bulb" id="neon-bulb"></div>
+                    <div class="bulb-wire"></div>
+                    
+                    <i class="fa-solid fa-hand-back-fist hand-cursor" id="user-hand"></i>
+
+                    <div class="balloon-draggable" id="balloon">
+                        <div class="balloon-tail"></div>
+                        <div class="absolute inset-0 flex flex-wrap justify-center items-center p-2 opacity-80">
+                            <span class="charge-marker charge-minus">-</span>
+                            <span class="charge-marker charge-minus">-</span>
+                            <span class="charge-marker charge-minus">-</span>
+                            <span class="charge-marker charge-minus">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="neon-explanation" class="hidden mt-6 bg-yellow-900/40 p-6 rounded-xl border border-yellow-500/50 backdrop-blur-sm">
+                    <h3 class="font-cute text-2xl text-yellow-300 mb-3">🧐 왜 불이 켜졌을까?</h3>
+                    <p class="text-lg text-slate-200 mb-4">
+                        풍선을 털가죽으로 마찰하면 풍선은 <strong>(-)전하</strong>를 띠게 됩니다.<br>
+                        이 풍선을 알루미늄 컵에 대면 풍선에 있던 <strong>(-)전하를 띤 전자</strong>가 알루미늄 컵을 통해 네온전구로 순간적으로 이동(전류)하기 때문에 불이 켜집니다.
+                    </p>
+                    <div class="text-center">
+                        <button onclick="openTab('lab2')" class="font-cute text-xl bg-blue-600 hover:bg-blue-500 text-white py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                            다음 실험: 물과 전기 회로 비교하기 <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-lab2" class="tab-content hidden glass-panel p-4 md:p-6 h-[800px] flex flex-col relative">
+            <div class="flex flex-wrap justify-between items-center mb-4 shrink-0 gap-4">
+                <h2 class="font-cute text-3xl text-blue-400 glow-blue text-center">
+                    <i class="fa-solid fa-water"></i> 물의 흐름과 전기 회로 비교 <i class="fa-solid fa-bolt text-yellow-400"></i>
+                </h2>
+                <button onclick="resetLab2()" class="font-cute bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg shadow transition-colors">
+                    <i class="fa-solid fa-rotate-right"></i> 초기화
+                </button>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-lg text-sm text-center text-slate-300 mb-4 shrink-0">
+                펌프(전지)를 켜서 흐름을 만들고, 수도꼭지(스위치)를 열고 닫아보세요. <br>
+                <span class="text-red-400 font-bold">도선/수도관을 끊었을 때(가위표 클릭)의 차이점</span>을 반드시 확인하세요!
+            </div>
+
+            <div class="split-view flex-1 min-h-0 bg-slate-900 rounded-xl border border-slate-700">
+                
+                <div class="split-pane">
+                    <h3 class="font-cute text-xl text-blue-300 text-center mb-4">물의 흐름 모형</h3>
+                    <div class="relative w-full h-[90%] flex justify-center items-center">
+                        <div class="pipe-path" style="width: 80%; height: 80%;">
+                            <div class="water-flow-container" id="water-path"></div>
+                        </div>
+                        
+                        <div class="pump" style="left: 10%; top: 50%; transform: translateY(-50%);">
+                            <div class="pump-rotor" id="pump-rotor"></div>
+                            <div class="absolute -left-16 text-xs text-blue-200 bg-slate-800 p-1 rounded">펌프</div>
+                        </div>
+                        
+                        <div class="valve" id="water-valve" onclick="toggleWater()" style="left: 50%; top: 10%; transform: translate(-50%, -50%);"></div>
+                        <div class="absolute text-xs text-blue-200 bg-slate-800 p-1 rounded" style="left: 50%; top: 3%; transform: translateX(-50%);">수도꼭지</div>
+                        
+                        <div class="water-wheel" id="water-wheel" style="right: 10%; top: 50%; transform: translateY(-50%);">
+                            <i class="fa-solid fa-fan text-white text-2xl"></i>
+                            <div class="absolute -right-16 text-xs text-blue-200 bg-slate-800 p-1 rounded">물레방아</div>
+                        </div>
+
+                        <div class="break-point" onclick="breakSystem('water')" id="break-water" style="left: 50%; bottom: 10%; transform: translate(-50%, 50%);"><i class="fa-solid fa-scissors"></i></div>
+                    </div>
+                </div>
+
+                <div class="split-pane">
+                    <h3 class="font-cute text-xl text-yellow-300 text-center mb-4">전기 회로</h3>
+                    <div class="relative w-full h-[90%] flex justify-center items-center">
+                        <div class="wire-path" style="width: 80%; height: 80%;">
+                            <div class="water-flow-container" id="circuit-path"></div>
+                        </div>
+
+                        <div class="battery" style="left: 10%; top: 50%; transform: translateY(-50%);">
+                            <div class="absolute -left-12 text-xs text-yellow-200 bg-slate-800 p-1 rounded">전지</div>
+                        </div>
+                        
+                        <div class="switch open" id="circuit-switch" onclick="toggleCircuit()" style="left: 50%; top: 10%; transform: translate(-50%, -50%);"></div>
+                        <div class="absolute text-xs text-yellow-200 bg-slate-800 p-1 rounded" style="left: 50%; top: 3%; transform: translateX(-50%);">스위치</div>
+                        
+                        <div class="lightbulb" id="circuit-bulb" style="right: 10%; top: 50%; transform: translateY(-50%); flex justify-center items-center text-slate-400">
+                             <i class="fa-solid fa-lightbulb mt-1 ml-1.5" id="bulb-icon"></i>
+                            <div class="absolute -right-12 text-xs text-yellow-200 bg-slate-800 p-1 rounded">전구</div>
+                        </div>
+
+                        <div class="break-point" onclick="breakSystem('circuit')" id="break-circuit" style="left: 50%; bottom: 10%; transform: translate(-50%, 50%);"><i class="fa-solid fa-scissors"></i></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="compare-explanation" class="mt-4 bg-slate-800 p-4 rounded-xl border border-slate-600 hidden shrink-0">
+                <h4 class="font-cute text-xl text-green-400 mb-2">🔍 관찰 결과</h4>
+                <ul class="text-slate-300 text-sm space-y-2 list-disc pl-5" id="compare-text">
+                </ul>
+            </div>
+            
+            <div class="text-center mt-4 shrink-0">
+                 <button onclick="openTab('summary')" class="font-cute text-xl bg-purple-600 hover:bg-purple-500 text-white py-2 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                    4단계 퀴즈로 가기 <i class="fa-solid fa-check"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-summary" class="tab-content hidden glass-panel p-6 md:p-10">
+            <h2 class="font-cute text-4xl text-green-400 mb-8 text-center glow-green">
+                <i class="fa-solid fa-medal text-green-400"></i> 핵심 정리 퀴즈
+            </h2>
+            
+            <p class="text-center text-slate-300 mb-8 text-lg">지금까지 배운 내용을 빈칸을 채우며 확인해 보세요!</p>
+
+            <div class="space-y-6 max-w-2xl mx-auto">
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-600 shadow-lg">
+                    <p class="text-lg text-slate-200 leading-loose">
+                        1. 전하의 흐름을 <input type="text" class="q-box" data-answer="전류" placeholder="ㅈㄹ"> (이)라고 하며, 단위는 <input type="text" class="q-box" data-answer="a" placeholder="영문 1자"> 을/를 사용한다.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-600 shadow-lg">
+                    <p class="text-lg text-slate-200 leading-loose">
+                        2. 도선에서 전자는 전지의 <input type="text" class="q-box w-20" data-answer="-" placeholder="기호"> 극에서 <input type="text" class="q-box w-20" data-answer="+" placeholder="기호"> 극으로 이동한다.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-600 shadow-lg">
+                    <p class="text-lg text-slate-200 leading-loose">
+                        3. 전류의 방향은 전지의 <input type="text" class="q-box w-20" data-answer="+" placeholder="기호"> 극에서 <input type="text" class="q-box w-20" data-answer="-" placeholder="기호"> 극으로 흐른다고 정하여 사용하므로, <strong>전류의 방향은 전자의 이동 방향과 <input type="text" class="q-box w-20" data-answer="반대" placeholder="ㅂㄷ"></strong> 이다.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-600 shadow-lg">
+                    <p class="text-lg text-slate-200 leading-loose">
+                        4. 전기 회로를 물의 흐름 모형에 비유할 때, 전지는 물을 흐르게 하는 <input type="text" class="q-box" data-answer="펌프" placeholder="ㅍㅍ"> 에 해당하고, 전구는 <input type="text" class="q-box" data-answer="물레방아" placeholder="ㅁㄹㅂㅇ"> 에 해당한다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-10 text-center">
+                <button onclick="checkQuiz()" class="font-cute text-2xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white py-3 px-12 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
+                    정답 확인하기! 🏆
+                </button>
+                <div id="quiz-msg" class="font-bold text-2xl mt-6 hidden font-cute"></div>
+            </div>
+        </section>
+
+        <footer class="mt-12 text-center text-slate-500 border-t border-slate-700/50 pt-6 font-cute">
+            <p>제작자: <span class="text-slate-400">해누리중학교 과학교사 남국현</span></p>
+        </footer>
+    </div>
+
+    <script>
+        let synth = null;
+
+        function initAudio() {
+            if (typeof Tone !== 'undefined') {
+                Tone.start();
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -8;
+                }
+            }
+        }
+
+        function playSound(type, note = 'C5', duration = '16n') {
+            if (typeof Tone === 'undefined') return;
+            try {
+                if (!synth) initAudio();
+                if (type === 'click') {
+                    synth.triggerAttackRelease(note || 'C5', duration || '16n');
+                } else if (type === 'success') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('C5', '8n', now);
+                    synth.triggerAttackRelease('E5', '8n', now + 0.1);
+                    synth.triggerAttackRelease('G5', '8n', now + 0.2);
+                    synth.triggerAttackRelease('C6', '4n', now + 0.3);
+                } else if (type === 'wrong') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('C3', '8n', now);
+                    synth.triggerAttackRelease('F#2', '4n', now + 0.15);
+                } else if (type === 'spark') {
+                    synth.triggerAttackRelease('A6', '32n');
+                }
+            } catch (e) {
+                console.warn('Audio error:', e);
+            }
+        }
+
+        function startApp() {
+            initAudio();
+            playSound('success');
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            initLab2Particles();
+        }
+
+        function openTab(tabId) {
+            playSound('click', 'E5');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+        }
+
+        function revealBlank(el) {
+            if (el && !el.classList.contains('revealed')) {
+                el.classList.add('revealed');
+                playSound('click', 'G6', '16n');
+            }
+        }
+
+        const historyData = {
+            'ampere': {
+                title: '전류의 단위 A(암페어)',
+                content: '<p>전류의 단위인 <strong>A(암페어)</strong>는 프랑스의 물리학자이자 수학자인 <strong>앙드레마리 앙페르(André-Marie Ampère)</strong>의 이름에서 유래했습니다.</p><p class="mt-2">그는 전기와 자기 사이의 관계를 수학적으로 정리한 "앙페르의 법칙"을 발견하여 전자기학의 기초를 다진 위대한 과학자입니다. 그의 업적을 기리기 위해 전류의 단위로 그의 이름을 사용하게 되었습니다.</p>'
+            },
+            'direction': {
+                title: '왜 전류와 전자의 방향이 반대일까?',
+                content: '<p>18세기에 미국의 과학자 <strong>벤저민 프랭클린</strong>은 전하를 띤 물질이 많은 쪽을 (+), 적은 쪽을 (-)로 정의하고, <strong>전류가 (+)에서 (-)로 흐른다</strong>고 약속했습니다.</p><p class="mt-2">하지만 그로부터 100여 년이 지난 후, J.J. 톰슨에 의해 <strong>전자</strong>가 발견되면서 실제로 도선 안에서 움직이는 것은 <strong>(-)전하를 띤 전자</strong>이며, (-)극에서 (+)극으로 이동한다는 사실이 밝혀졌습니다.</p><p class="mt-2 text-yellow-300">과학자들은 이미 기존의 전류 방향(➕➡️➖)을 바탕으로 수많은 과학 법칙(예: 앙페르의 오른나사 법칙 등)을 만들어 두었기 때문에 혼란을 막고자 기존의 약속을 그대로 유지하고 있습니다.</p>'
+            }
+        };
+
+        function showHistory(key) {
+            playSound('click', 'A5');
+            const modal = document.getElementById('history-modal');
+            const contentBox = modal.querySelector('.history-content');
+            
+            document.getElementById('history-title-text').innerHTML = historyData[key].title;
+            document.getElementById('history-body').innerHTML = historyData[key].content;
+            
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            contentBox.classList.remove('scale-95');
+        }
+
+        function closeHistory() {
+            playSound('click', 'C5');
+            const modal = document.getElementById('history-modal');
+            const contentBox = modal.querySelector('.history-content');
+            
+            modal.classList.add('opacity-0');
+            contentBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden', 'pointer-events-none');
+            }, 300);
+        }
+
+        const balloon = document.getElementById('balloon');
+        const expAreaNeon = document.getElementById('exp-area-neon');
+        const aluCup = document.getElementById('alu-cup');
+        const neonBulb = document.getElementById('neon-bulb');
+        const hand = document.getElementById('user-hand');
+        
+        let isDraggingBalloon = false;
+        let balloonOffset = { x: 0, y: 0 };
+        let hasLitBulb = false;
+
+        if(balloon) {
+            balloon.addEventListener('mousedown', startBalloonDrag);
+            balloon.addEventListener('touchstart', startBalloonDrag, { passive: false });
+        }
+        document.addEventListener('mousemove', dragBalloonMove);
+        document.addEventListener('touchmove', dragBalloonMove, { passive: false });
+        document.addEventListener('mouseup', endBalloonDrag);
+        document.addEventListener('touchend', endBalloonDrag);
+
+        function startBalloonDrag(e) {
+            isDraggingBalloon = true;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const rect = balloon.getBoundingClientRect();
+            balloonOffset.x = clientX - rect.left;
+            balloonOffset.y = clientY - rect.top;
+        }
+
+        function dragBalloonMove(e) {
+            if (!isDraggingBalloon || !expAreaNeon) return;
+            e.preventDefault();
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const areaRect = expAreaNeon.getBoundingClientRect();
+
+            let newX = clientX - areaRect.left - balloonOffset.x;
+            let newY = clientY - areaRect.top - balloonOffset.y;
+
+            newX = Math.max(0, Math.min(newX, areaRect.width - balloon.offsetWidth));
+            newY = Math.max(0, Math.min(newY, areaRect.height - balloon.offsetHeight));
+
+            balloon.style.left = `${newX}px`;
+            balloon.style.top = `${newY}px`;
+
+            checkBalloonTouch();
+        }
+
+        function endBalloonDrag() {
+            isDraggingBalloon = false;
+        }
+
+        function checkBalloonTouch() {
+            if(hasLitBulb) return;
+            
+            const bRect = balloon.getBoundingClientRect();
+            const cRect = aluCup.getBoundingClientRect();
+            
+            if (bRect.right > cRect.left && bRect.left < cRect.right &&
+                bRect.bottom > cRect.top && bRect.top < cRect.bottom) {
+                triggerNeonLight();
+            }
+        }
+
+        function triggerNeonLight() {
+            hasLitBulb = true;
+            playSound('spark');
+            
+            neonBulb.classList.add('on');
+            hand.style.transform = 'translate(10px, -10px)';
+            hand.style.color = '#fef08a';
+            
+            createSparks(aluCup.getBoundingClientRect().left + 45, aluCup.getBoundingClientRect().top);
+            
+            document.getElementById('neon-explanation').classList.remove('hidden');
+            
+            setTimeout(() => {
+                neonBulb.classList.remove('on');
+                hand.style.transform = 'translate(0, 0)';
+                hand.style.color = '#fca5a5';
+            }, 800);
+        }
+        
+        function resetLab1() {
+            hasLitBulb = false;
+            balloon.style.left = '10%';
+            balloon.style.top = '30%';
+            neonBulb.classList.remove('on');
+            document.getElementById('neon-explanation').classList.add('hidden');
+            hand.style.transform = 'translate(0, 0)';
+            hand.style.color = '#fca5a5';
+            playSound('click', 'E4');
+        }
+
+        function createSparks(x, y) {
+            const areaRect = expAreaNeon.getBoundingClientRect();
+            for(let i=0; i<5; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark-effect';
+                spark.style.left = `${x - areaRect.left + (Math.random()*20-10)}px`;
+                spark.style.top = `${y - areaRect.top + (Math.random()*20-10)}px`;
+                expAreaNeon.appendChild(spark);
+                setTimeout(() => spark.remove(), 300);
+            }
+        }
+
+        let waterValveOpen = false;
+        let circuitSwitchClosed = false;
+        let waterBroken = false;
+        let circuitBroken = false;
+        
+        const NUM_PARTICLES = 16;
+        let waterParticles = [];
+        let electronParticles = [];
+        let animLoopId;
+        
+        function getPathPos(progress) {
+            const p = progress % 1.0;
+            if (p < 0.25) return { x: p * 4, y: 0 };
+            if (p < 0.5) return { x: 1, y: (p - 0.25) * 4 };
+            if (p < 0.75) return { x: 1 - (p - 0.5) * 4, y: 1 };
+            return { x: 0, y: 1 - (p - 0.75) * 4 };
+        }
+
+        function initLab2Particles() {
+            const wPath = document.getElementById('water-path');
+            const cPath = document.getElementById('circuit-path');
+            
+            for(let i=0; i<NUM_PARTICLES; i++) {
+                const wp = document.createElement('div');
+                wp.className = 'water-molecule';
+                
+                const ox = document.createElement('div');
+                ox.className = 'atom-o';
+                wp.appendChild(ox);
+                
+                const h1 = document.createElement('div');
+                h1.className = 'atom-h atom-h1';
+                const h2 = document.createElement('div');
+                h2.className = 'atom-h atom-h2';
+                wp.appendChild(h1);
+                wp.appendChild(h2);
+
+                wPath.appendChild(wp);
+                waterParticles.push({ el: wp, progress: i / NUM_PARTICLES });
+                
+                const ep = document.createElement('div');
+                ep.className = 'electron-particle';
+                ep.innerText = 'e⁻';
+                cPath.appendChild(ep);
+                electronParticles.push({ el: ep, progress: i / NUM_PARTICLES });
+            }
+            updateParticlePositions();
+            animLoopId = requestAnimationFrame(simulateLab2);
+        }
+
+        function updateParticlePositions() {
+            const margin = 5; 
+            
+            waterParticles.forEach(p => {
+                const pos = getPathPos(p.progress);
+                p.el.style.left = `calc(${pos.x * 100}% - ${margin}px)`;
+                p.el.style.top = `calc(${pos.y * 100}% - ${margin}px)`;
+                
+                if(p.el.classList.contains('water-molecule')) {
+                     let rot = 0;
+                     if(p.progress < 0.25) rot = 0;       
+                     else if(p.progress < 0.5) rot = 90;  
+                     else if(p.progress < 0.75) rot = 180;
+                     else rot = 270;                      
+                     
+                     const wiggle = Math.sin(Date.now() / 200 + p.progress * 20) * 15;
+                     p.el.style.transform = `rotate(${rot + wiggle}deg)`;
+                }
+            });
+            
+            electronParticles.forEach(p => {
+                const pos = getPathPos(p.progress);
+                p.el.style.left = `calc(${pos.x * 100}% - ${margin}px)`;
+                p.el.style.top = `calc(${pos.y * 100}% - ${margin}px)`;
+            });
+        }
+
+        let wheelAngle = 0;
+        let pumpAngle = 0;
+        
+        function simulateLab2() {
+            let updateNeeded = false;
+            
+            if (waterValveOpen) {
+                const speed = 0.005;
+                let isFlowing = true;
+                
+                if (waterBroken) {
+                    isFlowing = false;
+                    createWaterLeak();
+                }
+                
+                if (isFlowing) {
+                    waterParticles.forEach(p => p.progress = (p.progress + speed) % 1.0);
+                    pumpAngle += 5;
+                    wheelAngle += 5;
+                    document.getElementById('pump-rotor').style.transform = `rotate(${pumpAngle}deg)`;
+                    document.getElementById('water-wheel').style.transform = `translateY(-50%) rotate(${wheelAngle}deg)`;
+                    updateNeeded = true;
+                }
+            }
+            
+            if (circuitSwitchClosed) {
+                if (circuitBroken) {
+                    document.getElementById('circuit-bulb').classList.remove('on');
+                    document.getElementById('bulb-icon').style.color = '';
+                } else {
+                    const speed = 0.005;
+                    electronParticles.forEach(p => {
+                        p.progress -= speed;
+                        if(p.progress < 0) p.progress += 1.0;
+                    });
+                    
+                    document.getElementById('circuit-bulb').classList.add('on');
+                    document.getElementById('bulb-icon').style.color = '#000';
+                    updateNeeded = true;
+                }
+            } else {
+                document.getElementById('circuit-bulb').classList.remove('on');
+                document.getElementById('bulb-icon').style.color = '';
+            }
+
+            if(updateNeeded) updateParticlePositions();
+            
+            checkCompareStatus();
+            
+            animLoopId = requestAnimationFrame(simulateLab2);
+        }
+
+        function createWaterLeak() {
+            if(Math.random() > 0.1) return; 
+            const breakPt = document.getElementById('break-water');
+            const pane = breakPt.parentElement;
+            
+            const leak = document.createElement('div');
+            leak.className = 'water-molecule water-leak';
+            
+            const ox = document.createElement('div'); ox.className = 'atom-o';
+            const h1 = document.createElement('div'); h1.className = 'atom-h atom-h1';
+            const h2 = document.createElement('div'); h2.className = 'atom-h atom-h2';
+            leak.appendChild(ox); leak.appendChild(h1); leak.appendChild(h2);
+            
+            leak.style.left = breakPt.style.left;
+            leak.style.bottom = breakPt.style.bottom;
+            
+            const dx = (Math.random() - 0.5) * 50;
+            const dy = 50 + Math.random() * 50;
+            leak.style.setProperty('--dx', `${dx}px`);
+            leak.style.setProperty('--dy', `${dy}px`);
+            
+            pane.appendChild(leak);
+            setTimeout(() => leak.remove(), 1000);
+        }
+
+        function toggleWater() {
+            waterValveOpen = !waterValveOpen;
+            const valve = document.getElementById('water-valve');
+            if (waterValveOpen) {
+                valve.classList.add('open');
+                playSound('click', 'C4');
+            } else {
+                valve.classList.remove('open');
+                playSound('click', 'G3');
+            }
+        }
+
+        function toggleCircuit() {
+            circuitSwitchClosed = !circuitSwitchClosed;
+            const sw = document.getElementById('circuit-switch');
+            if (circuitSwitchClosed) {
+                sw.classList.remove('open');
+                sw.classList.add('closed');
+                playSound('click', 'C4');
+            } else {
+                sw.classList.remove('closed');
+                sw.classList.add('open');
+                playSound('click', 'G3');
+            }
+        }
+
+        function breakSystem(type) {
+            if (type === 'water') {
+                if (waterBroken) return;
+                waterBroken = true;
+                const btn = document.getElementById('break-water');
+                btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                btn.style.backgroundColor = '#b91c1c';
+                btn.style.borderColor = '#fca5a5';
+            } else if (type === 'circuit') {
+                if (circuitBroken) return;
+                circuitBroken = true;
+                const btn = document.getElementById('break-circuit');
+                btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                btn.style.backgroundColor = '#b91c1c';
+                btn.style.borderColor = '#fca5a5';
+            }
+            playSound('spark');
+        }
+
+        function resetLab2() {
+            waterValveOpen = false;
+            circuitSwitchClosed = false;
+            waterBroken = false;
+            circuitBroken = false;
+            
+            const valve = document.getElementById('water-valve');
+            valve.classList.remove('open');
+            
+            const sw = document.getElementById('circuit-switch');
+            sw.classList.remove('closed');
+            sw.classList.add('open');
+            
+            document.getElementById('break-water').innerHTML = '<i class="fa-solid fa-scissors"></i>';
+            document.getElementById('break-water').style.backgroundColor = '#ef4444';
+            document.getElementById('break-water').style.borderColor = 'white';
+
+            document.getElementById('break-circuit').innerHTML = '<i class="fa-solid fa-scissors"></i>';
+            document.getElementById('break-circuit').style.backgroundColor = '#ef4444';
+            
+            document.getElementById('compare-explanation').classList.add('hidden');
+            document.getElementById('circuit-bulb').classList.remove('on');
+            document.getElementById('bulb-icon').style.color = '';
+            
+            playSound('click', 'E4');
+        }
+
+        function checkCompareStatus() {
+            const exp = document.getElementById('compare-explanation');
+            const text = document.getElementById('compare-text');
+            
+            let messages = [];
+            
+            if (waterValveOpen && !waterBroken) messages.push("💧 물 모형: 밸브가 열려 물 분자가 파이프를 따라 이동하며 물레방아가 돌아갑니다. <span class='text-blue-300'>(물의 흐름 방향과 물 분자의 이동 방향은 <strong>같습니다.</strong>)</span>");
+            if (circuitSwitchClosed && !circuitBroken) {
+                messages.push("⚡ 전기 회로: 스위치가 닫혀 전류가 흐르고 전구에 불이 켜집니다.");
+                messages.push("<span class='text-yellow-300'>💡 방향 주의: 물 모형과 달리, 회로에서 <strong>전자(e⁻)는 (-)극에서 나와 전류와 반대 방향</strong>으로 이동합니다!</span>");
+            }
+            
+            if (waterBroken && waterValveOpen) messages.push("<span class='text-blue-400'>⚠️ 물 끊어짐: 파이프가 끊어지면 <strong>물 분자가 밖으로 샙니다.</strong></span>");
+            if (circuitBroken && circuitSwitchClosed) messages.push("<span class='text-red-400'>⚠️ 회로 끊어짐: 도선이 끊어지면 전자가 흐를 길이 없어 <strong>전류가 아예 흐르지 않고 멈춥니다!</strong> (전자가 밖으로 새지 않음)</span>");
+
+            if (messages.length > 0) {
+                exp.classList.remove('hidden');
+                text.innerHTML = messages.map(m => `<li>${m}</li>`).join('');
+            }
+        }
+
+        function checkQuiz() {
+            const inputs = document.querySelectorAll('.q-box');
+            let allCorrect = true;
+
+            inputs.forEach(input => {
+                const userAns = input.value.replace(/\s+/g, '').toLowerCase();
+                const correctAns = input.dataset.answer.replace(/\s+/g, '').toLowerCase();
+
+                if (userAns === correctAns) {
+                    input.classList.add('correct');
+                    input.classList.remove('wrong');
+                } else {
+                    input.classList.add('wrong');
+                    input.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+
+            const msg = document.getElementById('quiz-msg');
+            msg.classList.remove('hidden');
+
+            if (allCorrect) {
+                playSound('success');
+                msg.innerHTML = "🎉 완벽합니다! 전류와 전기 회로의 개념을 정확히 이해했네요! 🏆";
+                msg.className = "font-bold text-3xl mt-6 text-green-400 animate-float font-cute glow-green";
+            } else {
+                playSound('wrong');
+                msg.innerHTML = "🤔 아쉽습니다! 붉은색 입력칸의 힌트를 참고해 다시 풀어보세요.";
+                msg.className = "font-bold text-2xl mt-6 text-red-400 font-cute";
+            }
+        }
+
+        document.querySelectorAll('.q-box').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('wrong');
+                this.classList.remove('correct');
+            });
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') checkQuiz();
+            });
+        });
+
+    </script>
+</body>
+</html>
