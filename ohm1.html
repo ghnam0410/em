@@ -629,6 +629,12 @@
                             <div class="text-4xl md:text-5xl font-bold text-white tracking-widest" style="font-family: 'Times New Roman', serif;">
                                 <span class="text-green-400">I</span> = <span class="text-blue-400">V</span> / <span class="text-red-400">R</span>
                             </div>
+
+                            <!-- '그런데 사실은...' 팝업 버튼 -->
+                                <button onclick="openMicroOhmModal()" class="font-cute text-sm md:text-base bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white px-4 py-2 rounded-full shadow-[0_0_15px_rgba(251,146,60,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center gap-2 border border-yellow-300/50">
+                                    <i class="fa-solid fa-magnifying-glass font-bold text-yellow-200"></i> 그런데 사실은...
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -685,6 +691,76 @@
                 </button>
             </div>
         </section>
+
+        <!-- Microscopic Ohm's Law Modal ('그런데 사실은...') -->
+        <div id="micro-ohm-modal" class="history-modal-overlay" onclick="closeMicroOhmModal(event)">
+            <div class="history-modal-card p-6 md:p-8 relative max-w-2xl" onclick="event.stopPropagation()">
+                <button onclick="closeMicroOhmModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl w-10 h-10 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <h3 class="font-cute text-2xl md:text-3xl text-amber-300 mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-atom text-yellow-400 animate-spin" style="animation-duration: 8s;"></i> 그런데 사실은... 옴의 진짜 숨겨진 목적!
+                </h3>
+                <p class="text-xs text-slate-400 mb-6 font-mono">과학사 & 미시적 관점의 옴의 법칙 탐구 🔍</p>
+
+                <div class="space-y-5 text-slate-200 text-sm md:text-base">
+                    
+                    <!-- Canvas Animation Container for Conductivity -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-amber-500/30 flex flex-col items-center">
+                        <div class="flex justify-between items-center w-full mb-2 px-2 text-xs font-cute text-slate-300">
+                            <span>⚡ 미시적 전자 이동 시뮬레이션</span>
+                            <span id="cond-label" class="text-amber-400">전기전도율(&sigma;): 높음</span>
+                        </div>
+                        <canvas id="cond-canvas" width="380" height="130" class="w-full max-w-full rounded-lg bg-slate-900 border border-slate-800"></canvas>
+                        <p class="text-[11px] text-slate-400 mt-2 text-center">
+                            전기장 \(\mathbf{E}\)를 걸어주었을 때 물질 속 자유 전자들이 얼마나 잘 흘러가는지(\(\mathbf{J}\))를 측정합니다.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 leading-relaxed space-y-3">
+                        <p class="font-cute text-lg text-yellow-300">
+                            🔬 옴의 진짜 목적: "물질의 고유한 전기 성질 측정"
+                        </p>
+                        <p>
+                            1827년 게오르크 옴이 이 법칙을 탐구했을 때의 진짜 목적은 회로 계산이 아니라, <strong>"물질마다 전기를 얼마나 잘 통하게 하는가?"</strong>라는 물질 고유의 특성을 밝히는 것이었어요.
+                        </p>
+                        <p class="bg-slate-950 p-3 rounded-lg border border-yellow-500/40 text-center font-bold text-base md:text-lg text-yellow-200 font-mono">
+                            $$\mathbf{J} = \sigma \mathbf{E}$$
+                        </p>
+                        <p class="text-xs text-slate-300 leading-normal">
+                            • \(\mathbf{J}\): 전류밀도 (단위 면적당 흐르는 전류)<br>
+                            • \(\mathbf{E}\): 전기장 (전자를 밀어주는 전기적 힘)<br>
+                            • \(\sigma\) (시그마): <strong>전기전도율</strong> (물질이 전기를 얼마나 잘 흘려보내는지 나타내는 고유한 상숫값)
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 leading-relaxed space-y-2">
+                        <p class="font-cute text-base text-cyan-300">
+                            🏭 첨단 산업에서 쓰이는 대표적 금속들
+                        </p>
+                        <p>
+                            과학자들은 이 법칙을 통해 <span class="color-ag">Ag (은)</span>, <span class="color-cu">Cu (구리)</span>, <span class="color-au">Au (금)</span> 같은 금속들의 전기전도율(\(\sigma\))이 매우 높다는 사실을 알아냈습니다.
+                        </p>
+                        <ul class="text-xs text-slate-300 space-y-1 pl-3 list-disc">
+                            <li><span class="color-ag">Ag (은)</span>: 모든 금속 중 전기전도율이 가장 높음 (고성능 회로용)</li>
+                            <li><span class="color-cu">Cu (구리)</span>: 전도율이 매우 높고 경제적이어서 우리 주변의 모든 전선에 사용</li>
+                            <li><span class="color-au">Au (금)</span>: 공기 중에서 녹슬지 않고 전도율이 높아 최고급 스마트폰·컴퓨터 반도체 커넥터로 활용</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-amber-950/40 p-4 rounded-xl border border-amber-500/40 leading-relaxed">
+                        <p class="font-cute text-base text-amber-300 mb-1">
+                            💡 그런데 왜 회로에서는 \(I = \frac{V}{R}\)로 바꿔 쓸까요?
+                        </p>
+                        <p class="text-xs md:text-sm text-slate-200">
+                            전선의 복잡한 두께나 길이를 매번 계산하며 회로를 만드는 것은 너무 복잡하기 때문이에요! 그래서 '전류가 얼마나 잘 흐르는지(\(\sigma\))'를 거꾸로 뒤집어 **'전류가 흐르는 것을 방해하는 정도(\(R\), 저항)'**로 개념을 전환하였고, 중학교에서 배우는 간단한 <strong>\(I = \frac{V}{R}\)</strong> 공식이 완성되었답니다!
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
 
         <!-- ========================================== -->
         <!-- TAB 4: SUMMARY QUIZ (심화 퀴즈) -->
@@ -1086,6 +1162,89 @@
 
                 time += 0.03;
                 blochAnimReq = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        // --- MICROSCOPIC OHM'S LAW MODAL LOGIC ('그런데 사실은...') ---
+        let condAnimReq;
+
+        function openMicroOhmModal() {
+            playSound('click', 'F5');
+            const modal = document.getElementById('micro-ohm-modal');
+            modal.classList.add('active');
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+            
+            startConductivityAnimation();
+        }
+
+        function closeMicroOhmModal(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('micro-ohm-modal').classList.remove('active');
+            if (condAnimReq) cancelAnimationFrame(condAnimReq);
+        }
+
+        function startConductivityAnimation() {
+            const canvas = document.getElementById('cond-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+
+            const electrons = [];
+            for(let i=0; i<35; i++) {
+                electrons.push({
+                    x: Math.random() * W,
+                    y: Math.random() * (H - 20) + 10,
+                    vx: 2 + Math.random() * 2.5,
+                    vy: (Math.random() - 0.5) * 0.8
+                });
+            }
+
+            function draw() {
+                ctx.fillStyle = '#090d16';
+                ctx.fillRect(0, 0, W, H);
+
+                // Electric field lines
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+                ctx.lineWidth = 1;
+                for(let y = 25; y < H; y += 25) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(W, y);
+                    ctx.stroke();
+                }
+
+                // Electric field direction arrow
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
+                ctx.font = '10px sans-serif';
+                ctx.fillText('전기장 (E) ➔', 10, 15);
+
+                // Electrons
+                ctx.fillStyle = '#38bdf8';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#38bdf8';
+
+                electrons.forEach(e => {
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    e.x += e.vx;
+                    e.y += e.vy;
+
+                    if (e.x > W) {
+                        e.x = 0;
+                        e.y = Math.random() * (H - 20) + 10;
+                    }
+                    if (e.y < 8 || e.y > H - 8) e.vy *= -1;
+                });
+
+                ctx.shadowBlur = 0;
+                condAnimReq = requestAnimationFrame(draw);
             }
             draw();
         }
