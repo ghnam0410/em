@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7.2.3. 저항의 직렬연결과 병렬연결 💡</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-darker: #020617; 
+            --panel-bg: rgba(30, 41, 59, 0.75); 
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-pink: #f472b6;
+            --neon-yellow: #facc15;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-darker);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(250, 204, 21, 0.08), transparent 40%);
+            background-attachment: fixed;
+            margin: 0; overflow-x: hidden; touch-action: manipulation;
+            color: var(--text-main); line-height: 1.6;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-blue { text-shadow: 0 0 12px rgba(56,189,248,0.7); }
+        .glow-yellow { text-shadow: 0 0 12px rgba(250,204,21,0.7); }
+        .glow-green { text-shadow: 0 0 12px rgba(52,211,153,0.7); }
+        .glow-purple { text-shadow: 0 0 12px rgba(168,85,247,0.7); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes flow {
+            from { stroke-dashoffset: 40; }
+            to { stroke-dashoffset: 0; }
+        }
+        .wire-flow {
+            stroke-dasharray: 10 10;
+            animation: flow 1s linear infinite;
+        }
+        .wire-flow-slow { stroke-dasharray: 10 10; animation: flow 2s linear infinite; }
+        .wire-flow-fast { stroke-dasharray: 10 10; animation: flow 0.5s linear infinite; }
+
+        @keyframes bulbGlow {
+            0% { filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.5)); }
+            100% { filter: drop-shadow(0 0 25px rgba(250, 204, 21, 1)); }
+        }
+        .bulb-on { animation: bulbGlow 1s alternate infinite; fill: #facc15; stroke: #fbbf24; stroke-width: 2px; }
+        .bulb-off { fill: #475569; filter: none; stroke: none; }
+        .bulb-dim { fill: #fef08a; filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5)); stroke: #fde047; stroke-width: 1px; }
+
+        .concept-blank {
+            display: inline-block; background: rgba(250, 204, 21, 0.12);
+            color: transparent; border-bottom: 3px dashed var(--neon-yellow);
+            padding: 0 12px; margin: 0 4px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; position: relative; font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-yellow); font-size: 0.85rem; font-family: 'Jua';
+            opacity: 0.8; animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow { 0% { opacity: 0.5; } 100% { opacity: 1; text-shadow: 0 0 10px #facc15; } }
+        
+        .concept-blank.revealed {
+            background: rgba(250, 204, 21, 0.22); color: var(--neon-yellow);
+            border-bottom: 3px solid var(--neon-yellow); transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { display: none; }
+
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.3s; border: 1px solid transparent; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ca8a04, #ea580c);
+            border-color: rgba(255,255,255,0.3); box-shadow: 0 0 20px rgba(234, 88, 12, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        .toggle-btn { transition: all 0.2s; }
+        .toggle-btn.selected { background-color: #3b82f6; color: white; border-color: #2563eb; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+        
+        .opt-btn { transition: all 0.2s; cursor: pointer; }
+        .opt-btn:hover { transform: translateY(-1px); }
+        .opt-btn.correct-opt { background-color: #16a34a !important; color: white !important; border-color: #22c55e !important; box-shadow: 0 0 10px rgba(34,197,94,0.5); }
+        .opt-btn.wrong-opt { background-color: #dc2626 !important; color: white !important; border-color: #ef4444 !important; }
+
+        .broken-line { stroke: #ef4444; stroke-width: 4; stroke-linecap: round; }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950 px-4">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-lightbulb text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]"></i>
+                <i class="fa-solid fa-link text-blue-400 drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"></i>
+                <i class="fa-solid fa-code-branch text-green-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.8)]"></i>
+            </div>
+            <h1 class="text-center font-cute text-3xl sm:text-5xl md:text-6xl text-white mb-4 glow-yellow">7.2.3. 저항의 직렬과 병렬연결</h1>
+            <p class="text-xl md:text-2xl text-slate-300 mb-8 font-light">전구를 어떻게 연결해야 더 밝을까? 🤔</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-xl">
+                <h3 class="font-cute text-2xl text-yellow-300 mb-3 text-center">💡 학습 설계 (학습 순서)</h3>
+                <ul class="text-slate-200 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 1단계: 직렬연결과 병렬연결의 뜻</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 2단계: 가상 실험 (전구 연결해보기)</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 3단계: 특성 비교 및 생활 속 예시</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 4단계: 핵심 개념 주관식 퀴즈</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:to-orange-400 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-[0_0_35px_rgba(250,204,21,0.6)] transition-transform hover:scale-105 active:scale-95">
+                전기 회로 랩(Lab) 입장 ⚡
+            </button>
+            <p class="mt-5 text-slate-400 text-sm animate-pulse"><i class="fa-solid fa-headphones"></i> 음향 효과가 포함되어 있습니다.</p>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden relative pb-16">
+        
+        <header class="text-center mb-8">
+            <h1 class="font-cute text-4xl md:text-5xl text-white glow-yellow">💡 저항의 직렬연결과 병렬연결</h1>
+            <p class="text-slate-400 mt-2 font-cute text-lg">중학 과학 2 - 7.2.3단원 핵심 개념 및 가상 실험</p>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8 glass-panel p-2">
+            <button onclick="openTab('theory')" id="btn-theory" class="nav-btn active font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">1단계: 연결 방법 📖</button>
+            <button onclick="openTab('lab')" id="btn-lab" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">2단계: 가상 실험 🧪</button>
+            <button onclick="openTab('law')" id="btn-law" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">3단계: 성질 비교 📊</button>
+            <button onclick="openTab('summary')" id="btn-summary" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">4단계: 확인 퀴즈 💯</button>
+        </nav>
+
+        <section id="tab-theory" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-yellow-900/30 border border-yellow-500/50 p-4 rounded-xl mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-lightbulb text-yellow-400 text-2xl animate-pulse"></i>
+                <p class="text-slate-200">개념 설명 속 <strong class="text-yellow-300">점선 빈칸</strong>을 클릭해 핵심 단어를 확인하며 저항을 연결하는 두 가지 방법을 알아봅시다!</p>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="font-cute text-3xl md:text-4xl text-blue-400 flex items-center gap-3 mb-6">
+                    <i class="fa-solid fa-link"></i> 1. 저항의 직렬연결과 병렬연결
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Series -->
+                    <div class="bg-slate-800/80 p-6 rounded-2xl border-2 border-blue-500/30 relative overflow-hidden transition-all hover:border-blue-400">
+                        <div class="text-5xl text-blue-400 mb-4 text-center"><i class="fa-solid fa-minus"></i><i class="fa-solid fa-minus"></i><i class="fa-solid fa-minus"></i></div>
+                        <h4 class="font-cute text-2xl text-blue-300 mb-4 text-center">직렬연결 (Series)</h4>
+                        <p class="text-slate-300 text-lg mb-4 leading-relaxed">
+                            두 개 이상의 저항을 <span class="concept-blank" onclick="revealBlank(this)">한 줄로</span> 차례대로 연결하는 방법입니다.
+                        </p>
+                        <div class="bg-blue-950/50 p-3 rounded-lg text-sm text-blue-200">
+                            🚶‍♂️ <strong>비유하자면:</strong> 갈림길이 없는 <strong>하나의 외길</strong>을 걷는 것과 같습니다. 길이 하나뿐이라 전류가 흐르는 길도 <span class="concept-blank" onclick="revealBlank(this)">오직 하나</span>입니다.
+                        </div>
+                    </div>
+                    
+                    <!-- Parallel -->
+                    <div class="bg-slate-800/80 p-6 rounded-2xl border-2 border-green-500/30 relative overflow-hidden transition-all hover:border-green-400">
+                        <div class="text-5xl text-green-400 mb-4 text-center">
+                            <i class="fa-solid fa-equals"></i>
+                        </div>
+                        <h4 class="font-cute text-2xl text-green-300 mb-4 text-center">병렬연결 (Parallel)</h4>
+                        <p class="text-slate-300 text-lg mb-4 leading-relaxed">
+                            두 개 이상의 저항을 나란히 <span class="concept-blank" onclick="revealBlank(this)">나누어</span> 연결하는 방법입니다.
+                        </p>
+                        <div class="bg-green-950/50 p-3 rounded-lg text-sm text-green-200">
+                            🛣️ <strong>비유하자면:</strong> 차가 막힐 때 <strong>여러 갈래의 우회도로</strong>가 생기는 것과 같습니다. 전류가 흐르는 길이 <span class="concept-blank" onclick="revealBlank(this)">여러 개</span>로 나뉩니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab')" class="font-cute bg-yellow-500 hover:bg-yellow-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(250,204,21,0.5)] transition-all hover:scale-105">
+                    연결 방법에 따른 차이는? 가상 실험실로 이동 🧪 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-4">
+                <div id="step-nav-1" class="font-cute px-4 py-2 rounded-full bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)]">1. 전구 1개 연결</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-2" class="font-cute px-4 py-2 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">2. 전구 직렬/병렬 추가</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-3" class="font-cute px-4 py-2 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">3. 전구 끊어보기</div>
+            </div>
+
+            <div class="glass-panel p-6 md:p-8 relative">
+                <h2 class="font-cute text-3xl text-blue-400 glow-blue mb-2">
+                    <i class="fa-solid fa-flask"></i> 가상 실험: 저항(전구)의 연결 특성
+                </h2>
+                <p class="text-slate-300 text-sm bg-slate-800/80 p-3 rounded-lg border border-slate-700 inline-block mb-4">
+                    스위치를 켜서 불을 밝힌 후, 전구를 직렬 또는 병렬로 추가해보고 밝기와 전류 애니메이션의 변화를 관찰하세요!
+                </p>
+
+                <div class="w-full h-[320px] bg-slate-900 rounded-xl border-2 border-slate-700 relative overflow-hidden flex items-center justify-center shadow-inner mb-6">
+                    <svg width="100%" height="100%" viewBox="0 0 500 300" preserveAspectRatio="xMidYMid meet">
+                        
+                        <!-- Static Wires Background -->
+                        <g stroke="#334155" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Main Loop (Left & Bottom & Right) -->
+                            <path d="M 100 240 L 100 60 L 170 60" />
+                            <path d="M 230 60 L 400 60 L 400 240 L 100 240" />
+                            <!-- Series extension path (Top right) -->
+                            <path d="M 230 60 L 400 60" id="path-series-static" style="display:none;" />
+                            <!-- Parallel branch (Middle) -->
+                            <path d="M 100 150 L 220 150 M 280 150 L 400 150" id="path-parallel-static" style="display:none;" />
+                        </g>
+
+                        <!-- Animated Electron Flow -->
+                        <g fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="wire-flow" id="flow-group" style="display: none;">
+                            <!-- Flow to Bulb 1 (Main Trunk) -->
+                            <path d="M 250 240 L 100 240 L 100 60 L 170 60" id="flow-main-left" />
+                            <!-- Flow from Bulb 1 to end (Single) -->
+                            <path d="M 230 60 L 400 60 L 400 240 L 250 240" id="flow-main-right-single" />
+                            <!-- Flow from Bulb 1 to Bulb 2 (Series) -->
+                            <path d="M 230 60 L 270 60" id="flow-series-mid" style="display:none;" />
+                            <!-- Flow from Bulb 2 to end (Series) -->
+                            <path d="M 330 60 L 400 60 L 400 240 L 250 240" id="flow-series-right" style="display:none;" />
+                            <!-- Flow Parallel Branch -->
+                            <path d="M 250 240 L 100 240 L 100 150 L 220 150" id="flow-parallel-left" style="display:none;" />
+                            <path d="M 280 150 L 400 150 L 400 240 L 250 240" id="flow-parallel-right" style="display:none;" />
+                        </g>
+
+                        <!-- Battery Component (Bottom Center) -->
+                        <g transform="translate(250 240)">
+                            <rect width="60" height="30" x="-30" y="-15" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+                            <rect width="10" height="30" x="-40" y="-15" fill="#ef4444"/> <!-- Plus terminal -->
+                            <text x="-25" y="5" fill="#ef4444" font-size="16" font-weight="bold">+</text>
+                            <text x="15" y="5" fill="#38bdf8" font-size="20" font-weight="bold">-</text>
+                            <text x="-15" y="30" fill="#cbd5e1" font-size="12">건전지</text>
+                        </g>
+                        
+                        <!-- Switch Component (Left side) -->
+                        <g transform="translate(100 190)">
+                            <circle cx="0" cy="-20" r="5" fill="#facc15"/>
+                            <circle cx="0" cy="20" r="5" fill="#facc15"/>
+                            <line id="switch-blade" x1="0" y1="20" x2="-20" y2="-15" stroke="#facc15" stroke-width="4" stroke-linecap="round" transition="all 0.3s"/>
+                        </g>
+
+                        <!-- Bulb 1 (Always Top Left/Center) -->
+                        <g transform="translate(200 60)" id="bulb-1-group">
+                            <rect x="-10" y="-15" width="20" height="30" fill="#94a3b8" rx="2" />
+                            <circle cx="0" cy="-25" r="20" fill="#475569" id="bulb-1" class="transition-all duration-300"/>
+                            <path d="M -5 -15 L -5 -25 L 5 -25 L 5 -15" fill="none" stroke="#1e293b" stroke-width="2" />
+                            <text x="0" y="25" fill="#cbd5e1" font-size="14" text-anchor="middle" font-family="Jua">전구 1</text>
+                            
+                            <g id="break-1" style="display: none;">
+                                <line x1="-15" y1="-35" x2="15" y2="-15" class="broken-line"/>
+                                <line x1="15" y1="-35" x2="-15" y2="-15" class="broken-line"/>
+                            </g>
+                        </g>
+
+                        <!-- Bulb 2 (Appears in Series - Top Right) -->
+                        <g transform="translate(300 60)" id="bulb-2-series" style="display: none; opacity: 0; transition: opacity 0.5s;">
+                            <rect x="-10" y="-15" width="20" height="30" fill="#94a3b8" rx="2" />
+                            <circle cx="0" cy="-25" r="20" fill="#475569" id="bulb-2s" class="transition-all duration-300"/>
+                            <path d="M -5 -15 L -5 -25 L 5 -25 L 5 -15" fill="none" stroke="#1e293b" stroke-width="2" />
+                            <text x="0" y="25" fill="#cbd5e1" font-size="14" text-anchor="middle" font-family="Jua">전구 2 (직렬)</text>
+                            <g id="break-2s" style="display: none;">
+                                <line x1="-15" y1="-35" x2="15" y2="-15" class="broken-line"/>
+                                <line x1="15" y1="-35" x2="-15" y2="-15" class="broken-line"/>
+                            </g>
+                        </g>
+
+                        <!-- Bulb 2 (Appears in Parallel - Middle) -->
+                        <g transform="translate(250 150)" id="bulb-2-parallel" style="display: none; opacity: 0; transition: opacity 0.5s;">
+                            <rect x="-10" y="-15" width="20" height="30" fill="#94a3b8" rx="2" />
+                            <circle cx="0" cy="-25" r="20" fill="#475569" id="bulb-2p" class="transition-all duration-300"/>
+                            <path d="M -5 -15 L -5 -25 L 5 -25 L 5 -15" fill="none" stroke="#1e293b" stroke-width="2" />
+                            <text x="0" y="25" fill="#cbd5e1" font-size="14" text-anchor="middle" font-family="Jua">전구 2 (병렬)</text>
+                            <g id="break-2p" style="display: none;">
+                                <line x1="-15" y1="-35" x2="15" y2="-15" class="broken-line"/>
+                                <line x1="15" y1="-35" x2="-15" y2="-15" class="broken-line"/>
+                            </g>
+                        </g>
+                    </svg>
+
+                    <!-- Main Switch Button -->
+                    <button onclick="toggleSwitchLab()" id="btn-main-switch" class="absolute bottom-4 left-4 font-cute bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-6 py-2 rounded-full shadow-lg text-sm transition-colors z-10 border-2 border-yellow-600">
+                        스위치 닫기 (ON)
+                    </button>
+                    
+                    <!-- Break Bulb Buttons -->
+                    <div id="break-controls" class="absolute top-4 right-4 flex flex-col gap-2 hidden z-10">
+                        <button onclick="toggleBreakBulb(1)" id="btn-break-1" class="font-cute bg-red-500/80 hover:bg-red-500 text-white px-3 py-1.5 rounded text-xs border border-red-700 transition-colors">
+                            전구 1 필라멘트 끊기 ✂️
+                        </button>
+                        <button onclick="toggleBreakBulb(2)" id="btn-break-2" class="font-cute bg-red-500/80 hover:bg-red-500 text-white px-3 py-1.5 rounded text-xs border border-red-700 transition-colors hidden">
+                            전구 2 필라멘트 끊기 ✂️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700 text-center">
+                    <h3 class="font-cute text-xl text-yellow-300 mb-4">회로 조작 패널</h3>
+                    
+                    <!-- Connection Mode Buttons -->
+                    <div class="flex flex-wrap justify-center gap-3 mb-4">
+                        <button onclick="setConnectionMode('single')" id="btn-mode-single" class="toggle-btn selected px-6 py-2 rounded-lg border border-slate-500 font-cute">전구 1개 (기본)</button>
+                        <button onclick="setConnectionMode('series')" id="btn-mode-series" class="toggle-btn px-6 py-2 rounded-lg border border-slate-500 font-cute bg-slate-700 text-slate-300">전구를 직렬로 추가 ➕</button>
+                        <button onclick="setConnectionMode('parallel')" id="btn-mode-parallel" class="toggle-btn px-6 py-2 rounded-lg border border-slate-500 font-cute bg-slate-700 text-slate-300">전구를 병렬로 추가 ⏸️</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 복구된 탐구 질문 & 관찰 카드 섹션 -->
+            <div class="glass-panel p-6 md:p-8">
+                <h3 class="font-cute text-2xl md:text-3xl text-yellow-300 mb-4 flex items-center gap-3 glow-yellow">
+                    <i class="fa-solid fa-clipboard-question text-yellow-400"></i> 실험으로 알아보는 탐구 질문
+                </h3>
+                <p class="text-slate-300 text-sm mb-6">위 가상 실험실에서 직접 회로를 조작하며 관찰한 뒤 보기에서 알맞은 정답을 선택해 보세요!</p>
+
+                <div class="space-y-6">
+                    <!-- Inquiry Question 1 -->
+                    <div class="bg-slate-800/90 p-5 rounded-xl border border-slate-700 transition-all hover:border-yellow-500/50">
+                        <h4 class="font-cute text-base sm:text-lg text-slate-100 mb-3 flex items-center gap-2">
+                            <span class="bg-yellow-500/20 text-yellow-300 text-xs px-2.5 py-1 rounded-full font-bold">질문 1</span>
+                            전구를 직렬로 추가하면 전구의 밝기는 처음보다 어떻게 될까요?
+                        </h4>
+                        
+                        <div class="flex flex-wrap gap-2.5 mb-3">
+                            <button onclick="checkInquiryOption(1, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">밝아진다</button>
+                            <button onclick="checkInquiryOption(1, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">일정하다</button>
+                            <button onclick="checkInquiryOption(1, this, true)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">어두워진다</button>
+                        </div>
+
+                        <div id="inquiry-exp-1" class="hidden pt-3 border-t border-slate-700/80 text-sm text-slate-300 space-y-2">
+                            <p class="text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> 정답: 어두워진다</p>
+                            <p class="text-slate-300">💡 <strong>까닭:</strong> 저항을 직렬로 연결할수록 전체 저항이 커져서 회로 전체에 흐르는 전류의 세기가 약해지기 때문입니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- Inquiry Question 2 -->
+                    <div class="bg-slate-800/90 p-5 rounded-xl border border-slate-700 transition-all hover:border-yellow-500/50">
+                        <h4 class="font-cute text-base sm:text-lg text-slate-100 mb-3 flex items-center gap-2">
+                            <span class="bg-yellow-500/20 text-yellow-300 text-xs px-2.5 py-1 rounded-full font-bold">질문 2</span>
+                            전구를 병렬로 추가할 때 기존 전구와 추가된 전구의 밝기는 어떻게 변화할까요?
+                        </h4>
+                        
+                        <div class="flex flex-wrap gap-2.5 mb-3">
+                            <button onclick="checkInquiryOption(2, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">어두워진다</button>
+                            <button onclick="checkInquiryOption(2, this, true)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">처음과 똑같이 밝다</button>
+                            <button onclick="checkInquiryOption(2, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base transition-all">더 밝아진다</button>
+                        </div>
+
+                        <div id="inquiry-exp-2" class="hidden pt-3 border-t border-slate-700/80 text-sm text-slate-300 space-y-2">
+                            <p class="text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> 정답: 처음과 똑같이 밝다</p>
+                            <p class="text-slate-300">💡 <strong>까닭:</strong> 병렬 연결에서는 각 저항(전구)에 걸리는 전압이 같아 전구를 추가하더라도 각 전구에 흐르는 전류의 세기가 변하지 않기 때문입니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- Inquiry Question 3 -->
+                    <div class="bg-slate-800/90 p-5 rounded-xl border border-slate-700 transition-all hover:border-yellow-500/50">
+                        <h4 class="font-cute text-base sm:text-lg text-slate-100 mb-3 flex items-center gap-2">
+                            <span class="bg-yellow-500/20 text-yellow-300 text-xs px-2.5 py-1 rounded-full font-bold">질문 3</span>
+                            전구 1개의 필라멘트를 끊었을 때(✂️) 직렬연결과 병렬연결은 각각 어떻게 될까요?
+                        </h4>
+                        
+                        <div class="flex flex-col sm:flex-row flex-wrap gap-2.5 mb-3">
+                            <button onclick="checkInquiryOption(3, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base text-left transition-all">직렬: 모두 꺼짐 / 병렬: 모두 꺼짐</button>
+                            <button onclick="checkInquiryOption(3, this, true)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base text-left transition-all">직렬: 모두 꺼짐 / 병렬: 나머지는 계속 켜짐</button>
+                            <button onclick="checkInquiryOption(3, this, false)" class="inquiry-opt-btn font-cute bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-500 px-4 py-2 rounded-lg text-sm sm:text-base text-left transition-all">직렬: 나머지는 계속 켜짐 / 병렬: 모두 꺼짐</button>
+                        </div>
+
+                        <div id="inquiry-exp-3" class="hidden pt-3 border-t border-slate-700/80 text-sm text-slate-300 space-y-2">
+                            <p class="text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> 정답: 직렬은 모두 꺼지고, 병렬은 나머지가 계속 켜져 있음</p>
+                            <p class="text-slate-300">💡 <strong>까닭:</strong> 직렬은 전류가 흐르는 회로가 하나뿐이어서 연결이 끊기면 전체 전류가 차단되지만, 병렬은 다른 갈래의 우회도로(회로)가 남아있어 계속 전류가 흐를 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-law" class="tab-content hidden space-y-8 glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-4xl text-white text-center mb-6">📊 직렬연결과 병렬연결의 특징 비교</h2>
+            
+            <!-- Comparison Cards Container -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Series Summary Card -->
+                <div class="bg-gradient-to-br from-slate-800 to-blue-900/40 p-6 rounded-2xl border border-blue-500/50 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-cute text-3xl text-blue-300 mb-4 text-center border-b border-blue-500/30 pb-3">
+                            <i class="fa-solid fa-minus"></i> 직렬연결 특성
+                        </h3>
+                        <ul class="space-y-5 text-slate-200 w-full mb-6">
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-lightbulb text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-blue-200">전체 저항:</strong> 연결할수록 전체 저항이
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">커집니다</button>
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">작아집니다</button>
+                                    </div>
+                                    <div class="text-sm text-slate-400 mt-1">$$R_{전체} = R_1 + R_2$$</div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-bolt text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-blue-200">전류의 세기:</strong> 회로 전체에 흐르는 전류는 저항을 추가할수록
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">커집니다</button>
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">약해집니다</button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-scissors text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-blue-200">연결 끊김:</strong> 하나가 끊어지면 길이 하나뿐이라
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">모두 꺼집니다</button>
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">나머지는 계속 켜져 있습니다</button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3 bg-blue-950/50 p-3 rounded-lg border border-blue-800">
+                                <i class="fa-solid fa-house-user text-blue-300 mt-1"></i>
+                                <div class="text-sm">
+                                    <strong class="text-blue-200">생활 속 이용:</strong> 퓨즈, 장식용 꼬마전구(일부), 화재 감지기
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Diagram Image Placeholder at Bottom -->
+                    <div class="w-full flex flex-col justify-center items-center bg-slate-900/60 p-4 rounded-xl border border-blue-500/30 mt-4">
+                        <img src="image/직렬.png" alt="직렬 연결 예시" class="max-w-full h-auto max-h-48 rounded-lg" onerror="this.src='https://placehold.co/300x180/1e293b/38bdf8?text=직렬.png+자리'">
+                        <span class="text-xs text-slate-400 mt-2 font-cute">직렬.png</span>
+                    </div>
+                </div>
+
+                <!-- Parallel Summary Card -->
+                <div class="bg-gradient-to-br from-slate-800 to-green-900/40 p-6 rounded-2xl border border-green-500/50 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-cute text-3xl text-green-300 mb-4 text-center border-b border-green-500/30 pb-3">
+                            <i class="fa-solid fa-equals"></i> 병렬연결 특성
+                        </h3>
+                        <ul class="space-y-5 text-slate-200 w-full mb-6">
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-lightbulb text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-green-200">전체 저항:</strong> 연결할수록 전체 저항이
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">커집니다</button>
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">작아집니다</button>
+                                    </div>
+                                    <div class="text-sm text-slate-400 mt-1">$$\frac{1}{R_{전체}} = \frac{1}{R_1} + \frac{1}{R_2}$$</div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-bolt text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-green-200">전압과 밝기:</strong> 각 저항에 걸리는 전압이 같아 전구의 밝기가
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">일정합니다</button>
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">어두워집니다</button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-scissors text-yellow-400 mt-1"></i>
+                                <div class="w-full">
+                                    <strong class="text-green-200">연결 끊김:</strong> 하나가 끊어져도 다른 길이 있어
+                                    <div class="inline-flex gap-2 mt-2 flex-wrap">
+                                        <button onclick="checkStep3Option(this, false)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">모두 꺼집니다</button>
+                                        <button onclick="checkStep3Option(this, true)" class="opt-btn bg-slate-700 border border-slate-500 px-3 py-1 rounded text-sm font-cute text-slate-200">나머지는 계속 켜져 있습니다</button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3 bg-green-950/50 p-3 rounded-lg border border-green-800">
+                                <i class="fa-solid fa-house-user text-green-300 mt-1"></i>
+                                <div class="text-sm">
+                                    <strong class="text-green-200">생활 속 이용:</strong> 가정용 전기 배선, 멀티탭, 가로등, 자동차 전조등
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Diagram Image Placeholder at Bottom -->
+                    <div class="w-full flex flex-col justify-center items-center bg-slate-900/60 p-4 rounded-xl border border-green-500/30 mt-4">
+                        <img src="image/병렬.png" alt="병렬 연결 예시" class="max-w-full h-auto max-h-48 rounded-lg" onerror="this.src='https://placehold.co/300x180/1e293b/34d399?text=병렬.png+자리'">
+                        <span class="text-xs text-slate-400 mt-2 font-cute">병렬.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button onclick="openTab('summary')" class="font-cute bg-purple-500 hover:bg-purple-400 text-white text-2xl py-3 px-10 rounded-full shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all hover:scale-105">
+                    마지막 단계! 주관식 퀴즈 도전 💯
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-summary" class="tab-content hidden glass-panel p-6 md:p-10">
+            <h2 class="font-cute text-4xl text-purple-400 text-center mb-8 glow-purple">💯 핵심 개념 주관식 퀴즈</h2>
+            
+            <div class="space-y-6 max-w-3xl mx-auto">
+                <!-- Quiz 1 -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-3"><span class="text-yellow-400 font-bold">Q1.</span> 두 저항을 직렬로 연결하면 전체 저항의 크기는 어떻게 될까요?</p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="quiz-input-1" class="flex-1 bg-slate-900 border border-slate-500 rounded-lg px-3 py-2 text-white font-cute focus:outline-none focus:border-yellow-400 transition-colors" placeholder="예: 커진다, 작아진다">
+                        <button onclick="checkSubjQuiz(1, ['커진다', '커짐', '커집니다', '증가', '많아'])" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-cute transition-colors whitespace-nowrap shadow-md">정답 확인</button>
+                    </div>
+                    <p id="quiz-msg-1" class="text-sm mt-2 font-cute hidden"></p>
+                </div>
+
+                <!-- Quiz 2 -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-3"><span class="text-yellow-400 font-bold">Q2.</span> 가정에서 여러 가전제품을 연결할 때 사용하는 멀티탭은 어떤 연결 방식일까요?</p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="quiz-input-2" class="flex-1 bg-slate-900 border border-slate-500 rounded-lg px-3 py-2 text-white font-cute focus:outline-none focus:border-yellow-400 transition-colors" placeholder="예: 직렬, 병렬">
+                        <button onclick="checkSubjQuiz(2, ['병렬', '병렬연결'])" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-cute transition-colors whitespace-nowrap shadow-md">정답 확인</button>
+                    </div>
+                    <p id="quiz-msg-2" class="text-sm mt-2 font-cute hidden"></p>
+                </div>
+
+                <!-- Quiz 3 -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-3"><span class="text-yellow-400 font-bold">Q3.</span> 병렬연결된 전구 중 하나가 고장 나서 꺼지면, 나머지 전구는 어떻게 될까요?</p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="quiz-input-3" class="flex-1 bg-slate-900 border border-slate-500 rounded-lg px-3 py-2 text-white font-cute focus:outline-none focus:border-yellow-400 transition-colors" placeholder="예: 같이 꺼진다, 계속 켜져 있다">
+                        <button onclick="checkSubjQuiz(3, ['켜져', '안꺼진다', '안꺼짐', '그대로', '켜짐'])" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-cute transition-colors whitespace-nowrap shadow-md">정답 확인</button>
+                    </div>
+                    <p id="quiz-msg-3" class="text-sm mt-2 font-cute hidden"></p>
+                </div>
+            </div>
+            
+            <div id="quiz-success" class="mt-8 text-center hidden animate-float">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="font-cute text-3xl text-green-400 mb-2 glow-green">훌륭합니다! 완벽하게 이해했네요!</h3>
+                <p class="text-slate-300">오늘 학습을 성공적으로 마쳤습니다.</p>
+            </div>
+        </section>
+
+        <footer class="mt-12 text-center text-slate-500 font-cute text-sm opacity-70 pb-4">
+            <p>제작: 해누리중학교 과학교사 남국현</p>
+            <p>Copyright © 2026 Science Lab. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Sound Engine Setup
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.volume.value = -10;
+        
+        function playTone(note, duration = "8n") {
+            try {
+                if(Tone.context.state !== 'running') Tone.start();
+                synth.triggerAttackRelease(note, duration);
+            } catch(e) {}
+        }
+
+        function startApp() {
+            Tone.start();
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('app').classList.remove('hidden');
+            playTone(["C4", "E4", "G4"], "4n");
+            
+            if(window.MathJax) { MathJax.typesetPromise(); }
+        }
+
+        // Tab Navigation
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'bg-gradient-to-r', 'from-yellow-600', 'to-orange-500', 'text-white'));
+            
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('active');
+            
+            playTone("G4", "16n");
+        }
+
+        // Reveal Blank Concepts
+        function revealBlank(el) {
+            if(!el.classList.contains('revealed')) {
+                el.classList.add('revealed');
+                playTone("E5", "16n");
+            }
+        }
+
+        // --- VIRTUAL LAB STATE & LOGIC ---
+        let labState = {
+            isSwitchOn: false,
+            mode: 'single', // 'single', 'series', 'parallel'
+            break1: false,
+            break2: false
+        };
+
+        function toggleSwitchLab() {
+            labState.isSwitchOn = !labState.isSwitchOn;
+            const btn = document.getElementById('btn-main-switch');
+            const blade = document.getElementById('switch-blade');
+            
+            if(labState.isSwitchOn) {
+                btn.textContent = "스위치 열기 (OFF)";
+                btn.classList.replace('bg-yellow-500', 'bg-red-500');
+                btn.classList.replace('hover:bg-yellow-400', 'hover:bg-red-400');
+                btn.classList.replace('border-yellow-600', 'border-red-600');
+                
+                // Switch closes correctly
+                blade.setAttribute('x2', '0'); 
+                blade.setAttribute('y2', '-20'); 
+                playTone("C5", "16n");
+            } else {
+                btn.textContent = "스위치 닫기 (ON)";
+                btn.classList.replace('bg-red-500', 'bg-yellow-500');
+                btn.classList.replace('hover:bg-red-400', 'hover:bg-yellow-400');
+                btn.classList.replace('border-red-600', 'border-yellow-600');
+                
+                blade.setAttribute('x2', '-20');
+                blade.setAttribute('y2', '-15');
+                playTone("G4", "16n");
+            }
+            updateCircuitVisuals();
+        }
+
+        function setConnectionMode(mode) {
+            labState.mode = mode;
+            labState.break1 = false;
+            labState.break2 = false;
+            
+            document.querySelectorAll('#tab-lab .toggle-btn').forEach(btn => {
+                btn.classList.remove('selected', 'bg-blue-500', 'text-white', 'border-blue-600');
+                btn.classList.add('bg-slate-700', 'text-slate-300');
+            });
+            event.target.classList.remove('bg-slate-700', 'text-slate-300');
+            event.target.classList.add('selected', 'bg-blue-500', 'text-white', 'border-blue-600');
+            
+            document.getElementById('break-controls').classList.remove('hidden');
+            document.getElementById('btn-break-1').textContent = "전구 1 필라멘트 끊기 ✂️";
+            document.getElementById('btn-break-1').classList.replace('bg-slate-600', 'bg-red-500/80');
+            
+            if(mode === 'single') {
+                document.getElementById('btn-break-2').classList.add('hidden');
+                document.getElementById('step-nav-1').className = "font-cute px-4 py-2 rounded-full bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)]";
+                document.getElementById('step-nav-2').className = "font-cute px-4 py-2 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700";
+            } else {
+                document.getElementById('btn-break-2').classList.remove('hidden');
+                document.getElementById('btn-break-2').textContent = "전구 2 필라멘트 끊기 ✂️";
+                document.getElementById('btn-break-2').classList.replace('bg-slate-600', 'bg-red-500/80');
+                
+                document.getElementById('step-nav-2').className = "font-cute px-4 py-2 rounded-full bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)]";
+            }
+            
+            playTone("E4", "16n");
+            updateCircuitVisuals();
+        }
+
+        function toggleBreakBulb(bulbNum) {
+            if(bulbNum === 1) {
+                labState.break1 = !labState.break1;
+                const btn = document.getElementById('btn-break-1');
+                if(labState.break1) {
+                    btn.textContent = "전구 1 수리하기 🔧";
+                    btn.classList.replace('bg-red-500/80', 'bg-slate-600');
+                    playTone("C3", "8n");
+                } else {
+                    btn.textContent = "전구 1 필라멘트 끊기 ✂️";
+                    btn.classList.replace('bg-slate-600', 'bg-red-500/80');
+                    playTone("E4", "16n");
+                }
+            } else {
+                labState.break2 = !labState.break2;
+                const btn = document.getElementById('btn-break-2');
+                if(labState.break2) {
+                    btn.textContent = "전구 2 수리하기 🔧";
+                    btn.classList.replace('bg-red-500/80', 'bg-slate-600');
+                    playTone("C3", "8n");
+                } else {
+                    btn.textContent = "전구 2 필라멘트 끊기 ✂️";
+                    btn.classList.replace('bg-slate-600', 'bg-red-500/80');
+                    playTone("E4", "16n");
+                }
+            }
+            
+            document.getElementById('step-nav-3').className = "font-cute px-4 py-2 rounded-full bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)]";
+            updateCircuitVisuals();
+        }
+
+        function updateCircuitVisuals() {
+            const bulb1 = document.getElementById('bulb-1');
+            const bulb2s = document.getElementById('bulb-2s');
+            const bulb2p = document.getElementById('bulb-2p');
+            const break1 = document.getElementById('break-1');
+            const break2s = document.getElementById('break-2s');
+            const break2p = document.getElementById('break-2p');
+            
+            const gBulb2Series = document.getElementById('bulb-2-series');
+            const gBulb2Parallel = document.getElementById('bulb-2-parallel');
+            
+            const pStaticSeries = document.getElementById('path-series-static');
+            const pStaticParallel = document.getElementById('path-parallel-static');
+            
+            const flowGroup = document.getElementById('flow-group');
+            const fMainLeft = document.getElementById('flow-main-left');
+            const fMainRightSing = document.getElementById('flow-main-right-single');
+            const fSeriesMid = document.getElementById('flow-series-mid');
+            const fSeriesRight = document.getElementById('flow-series-right');
+            const fParalLeft = document.getElementById('flow-parallel-left');
+            const fParalRight = document.getElementById('flow-parallel-right');
+
+            // Reset flows and opacities
+            flowGroup.style.display = 'none';
+            fMainLeft.style.display = 'none';
+            fMainRightSing.style.display = 'none';
+            fSeriesMid.style.display = 'none';
+            fSeriesRight.style.display = 'none';
+            fParalLeft.style.display = 'none';
+            fParalRight.style.display = 'none';
+
+            bulb1.setAttribute('class', 'bulb-off transition-all duration-300');
+            bulb2s.setAttribute('class', 'bulb-off transition-all duration-300');
+            bulb2p.setAttribute('class', 'bulb-off transition-all duration-300');
+            
+            break1.style.display = labState.break1 ? 'block' : 'none';
+            break2s.style.display = labState.break2 ? 'block' : 'none';
+            break2p.style.display = labState.break2 ? 'block' : 'none';
+
+            // Layout & Flow Logic
+            if(labState.mode === 'single') {
+                gBulb2Series.style.opacity = 0; setTimeout(()=> gBulb2Series.style.display='none', 300);
+                gBulb2Parallel.style.opacity = 0; setTimeout(()=> gBulb2Parallel.style.display='none', 300);
+                pStaticSeries.style.display = 'none';
+                pStaticParallel.style.display = 'none';
+                
+                if(labState.isSwitchOn && !labState.break1) {
+                    bulb1.setAttribute('class', 'bulb-on transition-all duration-300');
+                    flowGroup.style.display = 'block';
+                    flowGroup.setAttribute('class', 'wire-flow');
+                    fMainLeft.style.display = 'block';
+                    fMainRightSing.style.display = 'block';
+                }
+            } 
+            else if(labState.mode === 'series') {
+                gBulb2Series.style.display = 'block'; setTimeout(()=> gBulb2Series.style.opacity = 1, 10);
+                gBulb2Parallel.style.opacity = 0; setTimeout(()=> gBulb2Parallel.style.display='none', 300);
+                pStaticSeries.style.display = 'block';
+                pStaticParallel.style.display = 'none';
+                
+                if(labState.isSwitchOn && !labState.break1 && !labState.break2) {
+                    bulb1.setAttribute('class', 'bulb-dim transition-all duration-300');
+                    bulb2s.setAttribute('class', 'bulb-dim transition-all duration-300');
+                    flowGroup.style.display = 'block';
+                    flowGroup.setAttribute('class', 'wire-flow-slow');
+                    fMainLeft.style.display = 'block';
+                    fSeriesMid.style.display = 'block';
+                    fSeriesRight.style.display = 'block';
+                }
+            }
+            else if(labState.mode === 'parallel') {
+                gBulb2Series.style.opacity = 0; setTimeout(()=> gBulb2Series.style.display='none', 300);
+                gBulb2Parallel.style.display = 'block'; setTimeout(()=> gBulb2Parallel.style.opacity = 1, 10);
+                pStaticSeries.style.display = 'none';
+                pStaticParallel.style.display = 'block';
+                
+                if(labState.isSwitchOn) {
+                    let branch1Active = !labState.break1;
+                    let branch2Active = !labState.break2;
+                    
+                    if(branch1Active || branch2Active) {
+                        flowGroup.style.display = 'block';
+                        flowGroup.setAttribute('class', 'wire-flow-fast');
+                    }
+                    
+                    if(branch1Active) {
+                        bulb1.setAttribute('class', 'bulb-on transition-all duration-300');
+                        fMainLeft.style.display = 'block';
+                        fMainRightSing.style.display = 'block';
+                    }
+                    if(branch2Active) {
+                        bulb2p.setAttribute('class', 'bulb-on transition-all duration-300');
+                        fParalLeft.style.display = 'block';
+                        fParalRight.style.display = 'block';
+                    }
+                }
+            }
+        }
+
+        // Step 3 Interactive Option Choice Button
+        function checkStep3Option(btn, isCorrect) {
+            const container = btn.parentElement;
+            container.querySelectorAll('.opt-btn').forEach(b => {
+                b.classList.remove('correct-opt', 'wrong-opt');
+            });
+
+            if (isCorrect) {
+                btn.classList.add('correct-opt');
+                playTone("E5", "16n");
+            } else {
+                btn.classList.add('wrong-opt');
+                playTone("C3", "8n");
+            }
+        }
+
+        // Subjective Quiz Logic (Step 4)
+        let subjScore = 0;
+        let answeredSubj = {1: false, 2: false, 3: false};
+        
+        // Inquiry Question Interactive Option Logic
+        let inquiryAnswered = { 1: false, 2: false, 3: false };
+
+        function checkInquiryOption(qNum, btn, isCorrect) {
+            if (inquiryAnswered[qNum]) return;
+
+            const parent = btn.parentElement;
+            const buttons = parent.querySelectorAll('.inquiry-opt-btn');
+
+            if (isCorrect) {
+                inquiryAnswered[qNum] = true;
+                buttons.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+                btn.classList.remove('opacity-50', 'bg-slate-700', 'hover:bg-slate-600', 'text-slate-200');
+                btn.classList.add('bg-green-600', 'text-white', 'border-green-400', 'shadow-[0_0_12px_rgba(34,197,94,0.5)]');
+
+                const expEl = document.getElementById(`inquiry-exp-${qNum}`);
+                if (expEl) expEl.classList.remove('hidden');
+
+                playTone("E5", "16n");
+            } else {
+                btn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                btn.classList.add('bg-red-600', 'text-white', 'border-red-400');
+                playTone("C3", "8n");
+            }
+        }
+
+        function checkSubjQuiz(qNum, correctAnswers) {
+            if (answeredSubj[qNum]) return;
+
+            const inputEl = document.getElementById(`quiz-input-${qNum}`);
+            const msgEl = document.getElementById(`quiz-msg-${qNum}`);
+            const userAns = inputEl.value.trim().replace(/\s+/g, '');
+
+            if(userAns === '') {
+                msgEl.textContent = "정답을 입력해주세요!";
+                msgEl.className = "text-sm mt-2 font-cute text-yellow-400";
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            const isCorrect = correctAnswers.some(ans => userAns.includes(ans));
+
+            if (isCorrect) {
+                msgEl.textContent = "정답입니다! 👏";
+                msgEl.className = "text-sm mt-2 font-cute text-green-400";
+                msgEl.classList.remove('hidden');
+                
+                inputEl.classList.remove('border-slate-500', 'border-red-500');
+                inputEl.classList.add('border-green-500', 'text-green-400', 'bg-green-900/40');
+                inputEl.disabled = true;
+                
+                event.target.disabled = true;
+                event.target.classList.replace('bg-blue-600', 'bg-green-600');
+                event.target.classList.replace('hover:bg-blue-500', 'hover:bg-green-500');
+                event.target.textContent = "정답 확인 완료";
+                
+                playTone("C5", "8n");
+                
+                answeredSubj[qNum] = true;
+                subjScore++;
+                
+                if(subjScore === 3) {
+                    setTimeout(() => {
+                        document.getElementById('quiz-success').classList.remove('hidden');
+                        playTone(["C5", "E5", "G5", "C6", "E6"], "2n");
+                    }, 500);
+                }
+            } else {
+                msgEl.textContent = "틀렸습니다. 다시 생각해 보세요! 😅";
+                msgEl.className = "text-sm mt-2 font-cute text-red-400";
+                msgEl.classList.remove('hidden');
+                inputEl.classList.remove('border-slate-500');
+                inputEl.classList.add('border-red-500');
+                playTone("C3", "8n");
+            }
+        }
+    </script>
+</body>
+</html>
