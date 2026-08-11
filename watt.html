@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7.2.4. 전기 에너지의 전환과 소비 전력 ⚡</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-darker: #020617; 
+            --panel-bg: rgba(30, 41, 59, 0.75); 
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-pink: #f472b6;
+            --neon-yellow: #facc15;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-darker);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(250, 204, 21, 0.08), transparent 40%);
+            background-attachment: fixed;
+            margin: 0; overflow-x: hidden; touch-action: manipulation;
+            color: var(--text-main); line-height: 1.6;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-blue { text-shadow: 0 0 12px rgba(56,189,248,0.7); }
+        .glow-yellow { text-shadow: 0 0 12px rgba(250,204,21,0.7); }
+        .glow-green { text-shadow: 0 0 12px rgba(52,211,153,0.7); }
+        .glow-purple { text-shadow: 0 0 12px rgba(168,85,247,0.7); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes flow {
+            from { stroke-dashoffset: 40; }
+            to { stroke-dashoffset: 0; }
+        }
+        .wire-flow {
+            stroke-dasharray: 10 10;
+            animation: flow 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .animate-spin-fast { animation: spin 0.3s linear infinite; transform-origin: center; }
+        
+        @keyframes heatPulse {
+            0% { opacity: 0.3; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.3; transform: scale(0.95); }
+        }
+        .animate-heat { animation: heatPulse 1.5s ease-in-out infinite; }
+        
+        @keyframes glowPulse {
+            0% { filter: drop-shadow(0 0 5px #facc15); }
+            50% { filter: drop-shadow(0 0 25px #facc15); }
+            100% { filter: drop-shadow(0 0 5px #facc15); }
+        }
+        .animate-glow { animation: glowPulse 2s infinite; }
+
+        @keyframes emitPhoton {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+        .photon { animation: emitPhoton 1s ease-out infinite; }
+
+        .concept-blank {
+            display: inline-block; background: rgba(250, 204, 21, 0.12);
+            color: transparent; border-bottom: 3px dashed var(--neon-yellow);
+            padding: 0 12px; margin: 0 4px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; position: relative; font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-yellow); font-size: 0.85rem; font-family: 'Jua';
+            opacity: 0.8; animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow { 0% { opacity: 0.5; } 100% { opacity: 1; text-shadow: 0 0 10px #facc15; } }
+        
+        .concept-blank.revealed {
+            background: rgba(250, 204, 21, 0.22); color: var(--neon-yellow);
+            border-bottom: 3px solid var(--neon-yellow); transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { display: none; }
+
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.3s; border: 1px solid transparent; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ca8a04, #ea580c);
+            border-color: rgba(255,255,255,0.3); box-shadow: 0 0 20px rgba(234, 88, 12, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        .digital-meter {
+            background: #020617; border: 3px solid #334155; border-radius: 12px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5);
+            font-family: 'Courier New', Courier, monospace; font-weight: bold;
+        }
+        .meter-value { transition: all 0.3s; }
+        
+        .history-modal-overlay {
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 1rem;
+        }
+        .history-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .history-modal-card {
+            background: #0f172a; border: 1px solid rgba(250, 204, 21, 0.3);
+            border-radius: 24px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); transform: scale(0.9); transition: transform 0.3s;
+        }
+        .history-modal-overlay.active .history-modal-card { transform: scale(1); }
+
+        .q-box {
+            background: rgba(15, 23, 42, 0.8); border: none; border-bottom: 2px dashed var(--neon-yellow);
+            color: var(--neon-yellow); padding: 4px 8px; font-weight: bold; text-align: center;
+            width: 110px; transition: all 0.3s;
+        }
+        .q-box:focus { outline: none; border-bottom-style: solid; box-shadow: 0 10px 10px -10px var(--neon-yellow); }
+        .q-box.correct { border-bottom-color: var(--neon-green); color: var(--neon-green); background: rgba(52, 211, 153, 0.15); }
+        .q-box.wrong { border-bottom-color: var(--neon-pink); color: var(--neon-pink); background: rgba(244, 114, 182, 0.15); }
+
+        .mat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #334155;
+        }
+        .mat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .mat-incan { border-color: #facc15; } .mat-incan:hover { box-shadow: 0 15px 30px rgba(250,204,21,0.2); }
+        .mat-fluor { border-color: #cbd5e1; } .mat-fluor:hover { box-shadow: 0 15px 30px rgba(203,213,225,0.2); }
+        .mat-led { border-color: #38bdf8; } .mat-led:hover { box-shadow: 0 15px 30px rgba(56,189,248,0.2); }
+        .mat-qd { border-color: #f472b6; } .mat-qd:hover { box-shadow: 0 15px 30px rgba(244,114,182,0.2); }
+
+        .elem-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; margin: 0 2px; }
+        .elem-w { background: #475569; color: #f8fafc; }
+        .elem-hg { background: #94a3b8; color: #0f172a; }
+        .elem-gan { background: #0284c7; color: #f0f9ff; }
+        .elem-cd { background: #be123c; color: #fff1f2; }
+        .elem-inp { background: #047857; color: #ecfdf5; }
+
+        /* Tooltip styling */
+        .tooltip { position: relative; display: inline-block; border-bottom: 1px dotted #ccc; cursor: help; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 200px; background-color: #334155; color: #fff; text-align: center;
+            border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%;
+            margin-left: -100px; opacity: 0; transition: opacity 0.3s; font-size: 0.8rem; font-family: 'Gowun Dodum';
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950 px-4">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-plug-circle-bolt text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]"></i>
+                <i class="fa-solid fa-fan text-blue-400 drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"></i>
+                <i class="fa-solid fa-fire text-red-400 drop-shadow-[0_0_20px_rgba(248,113,113,0.8)]"></i>
+            </div>
+            <h1 class="text-center font-cute text-3xl sm:text-5xl md:text-6xl text-white mb-4 glow-yellow">7.2.4. 전기 에너지의 전환과 소비 전력</h1>
+            <p class="text-xl md:text-2xl text-slate-300 mb-8 font-light">전기는 어떤 마법을 부릴까? 🚀</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-xl">
+                <h3 class="font-cute text-2xl text-yellow-300 mb-3 text-center">💡 학습 설계 (학습 순서)</h3>
+                <ul class="text-slate-200 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 1단계: 전기 에너지의 다양한 전환</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 2단계: 소비 전력 가상 실험실</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 3단계: 소비 전력과 전기 에너지 계산</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 4단계: 핵심 개념 심화 퀴즈</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-400"></i> 5단계: 조명 기술의 진화와 노벨상 (STS)</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:to-orange-400 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-[0_0_35px_rgba(250,204,21,0.6)] transition-transform hover:scale-105 active:scale-95">
+                에너지 랩(Lab) 입장 ⚡
+            </button>
+            <p class="mt-5 text-slate-400 text-sm animate-pulse"><i class="fa-solid fa-headphones"></i> 음향 효과가 포함되어 있습니다.</p>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8">
+            <h1 class="font-cute text-4xl md:text-5xl text-white glow-yellow">⚡ 전기 에너지의 전환과 소비 전력</h1>
+            <p class="text-slate-400 mt-2 font-cute text-lg">중학 과학 2 - 7.4단원 핵심 개념 및 가상 실험</p>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8 glass-panel p-2">
+            <button onclick="openTab('theory')" id="btn-theory" class="nav-btn active font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">1단계: 에너지 전환 📖</button>
+            <button onclick="openTab('lab')" id="btn-lab" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">2단계: 가상 실험 🧪</button>
+            <button onclick="openTab('law')" id="btn-law" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">3단계: 소비 전력 💡</button>
+            <button onclick="openTab('summary')" id="btn-summary" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">4단계: 확인 퀴즈 💯</button>
+            <button onclick="openTab('sts')" id="btn-sts" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">5단계: 조명의 진화 🚀</button>
+        </nav>
+
+        <section id="tab-theory" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-yellow-900/30 border border-yellow-500/50 p-4 rounded-xl mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-lightbulb text-yellow-400 text-2xl animate-pulse"></i>
+                <p class="text-slate-200">개념 설명 속 <strong class="text-yellow-300">점선 빈칸</strong>을 클릭해 핵심 단어를 확인하고 전기 기구의 에너지 전환을 알아보세요!</p>
+            </div>
+
+            <div class="mb-12">
+                <h2 class="font-cute text-3xl md:text-4xl text-yellow-400 flex items-center gap-3 mb-6">
+                    <i class="fa-solid fa-recycle"></i> 1. 전기 에너지의 전환
+                </h2>
+                
+                <p class="text-slate-300 mb-6 text-lg">
+                    우리가 가정에서 사용하는 가전제품들은 모두 <strong>전기 에너지</strong>를 입력받아 우리에게 필요한 다른 형태의 에너지로 <span class="concept-blank" onclick="revealBlank(this)">전환</span>하여 사용합니다. 에너지는 사라지지 않고 형태만 바뀝니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Conversion Cards -->
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-blue-500/30 flex items-start gap-4">
+                        <div class="text-4xl text-blue-400 bg-blue-900/50 p-3 rounded-lg"><i class="fa-solid fa-fan"></i></div>
+                        <div>
+                            <h4 class="font-cute text-xl text-blue-300 mb-1">선풍기, 세탁기</h4>
+                            <p class="text-slate-300 text-sm">전동기를 돌려 바람을 만들거나 통을 회전시킵니다.</p>
+                            <p class="mt-2 text-sm text-yellow-200 font-bold">전기 에너지 ➔ <span class="concept-blank" onclick="revealBlank(this)">역학적(운동)</span> 에너지</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-red-500/30 flex items-start gap-4">
+                        <div class="text-4xl text-red-400 bg-red-900/50 p-3 rounded-lg"><i class="fa-solid fa-fire-burner"></i></div>
+                        <div>
+                            <h4 class="font-cute text-xl text-red-300 mb-1">전기난로, 헤어드라이어</h4>
+                            <p class="text-slate-300 text-sm">니크롬선 등에 전류가 흐를 때 발생하는 열을 이용합니다.</p>
+                            <p class="mt-2 text-sm text-yellow-200 font-bold">전기 에너지 ➔ <span class="concept-blank" onclick="revealBlank(this)">열</span> 에너지</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-yellow-500/30 flex items-start gap-4">
+                        <div class="text-4xl text-yellow-400 bg-yellow-900/50 p-3 rounded-lg"><i class="fa-solid fa-lightbulb"></i></div>
+                        <div>
+                            <h4 class="font-cute text-xl text-yellow-300 mb-1">LED 전구, 스탠드</h4>
+                            <p class="text-slate-300 text-sm">어두운 곳을 밝히기 위해 빛을 냅니다.</p>
+                            <p class="mt-2 text-sm text-yellow-200 font-bold">전기 에너지 ➔ <span class="concept-blank" onclick="revealBlank(this)">빛</span> 에너지</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-purple-500/30 flex items-start gap-4">
+                        <div class="text-4xl text-purple-400 bg-purple-900/50 p-3 rounded-lg"><i class="fa-solid fa-tv"></i></div>
+                        <div>
+                            <h4 class="font-cute text-xl text-purple-300 mb-1">텔레비전 (복합)</h4>
+                            <p class="text-slate-300 text-sm">화면을 보여주고 소리를 냅니다.</p>
+                            <p class="mt-2 text-sm text-yellow-200 font-bold">전기 에너지 ➔ 빛 + <span class="concept-blank" onclick="revealBlank(this)">소리</span> 에너지</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab')" class="font-cute bg-green-500 hover:bg-green-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(34,197,94,0.5)] transition-all hover:scale-105">
+                    가상 실험실로 이동 🧪 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            
+            <div class="glass-panel p-6 md:p-8 relative">
+                <div class="mb-6">
+                    <h2 class="font-cute text-3xl text-blue-400 glow-blue mb-2">
+                        <i class="fa-solid fa-flask"></i> 가상 실험: 가전제품의 에너지 전환과 소비 전력 측정
+                    </h2>
+                    <p class="text-slate-300 text-sm bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                        우리 집의 전압은 <strong>220V</strong>로 일정합니다. 플러그를 꽂을 제품을 선택하고 스위치를 켜보세요. 각 기구에 흐르는 <strong>전류</strong>와 <strong>에너지 전환</strong>을 관찰해봅시다.
+                    </p>
+                </div>
+
+                <!-- Step Nav -->
+                <div class="flex justify-center gap-3 mb-6">
+                    <button onclick="selectAppliance('led')" id="btn-app-led" class="font-cute px-4 py-2 rounded-full bg-blue-600 text-white border border-blue-400">LED 전구 (11W)</button>
+                    <button onclick="selectAppliance('fan')" id="btn-app-fan" class="font-cute px-4 py-2 rounded-full bg-slate-700 text-slate-400 border border-slate-600">선풍기 (44W)</button>
+                    <button onclick="selectAppliance('heater')" id="btn-app-heater" class="font-cute px-4 py-2 rounded-full bg-slate-700 text-slate-400 border border-slate-600">전기난로 (1100W)</button>
+                </div>
+
+                <!-- SVG Lab Environment -->
+                <div class="w-full h-[300px] bg-slate-900 rounded-t-xl border-2 border-b-0 border-slate-700 relative overflow-hidden flex flex-col items-center justify-center shadow-inner">
+                    
+                    <!-- Wall Outlet -->
+                    <div class="absolute top-4 left-4 bg-slate-200 w-16 h-16 rounded-xl border-4 border-slate-400 flex flex-col items-center justify-center shadow-lg">
+                        <div class="flex gap-2 mb-1">
+                            <div class="w-2 h-2 bg-slate-800 rounded-full"></div>
+                            <div class="w-2 h-2 bg-slate-800 rounded-full"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-800 font-bold">220V</span>
+                    </div>
+
+                    <!-- Power Cord (Dynamic) -->
+                    <svg class="absolute top-4 left-10 w-full h-full pointer-events-none z-0" style="z-index: 0;">
+                        <path id="power-cord" d="M 10 10 Q 50 150, 200 150 L 300 150" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                        <path id="cord-flow" d="M 10 10 Q 50 150, 200 150 L 300 150" fill="none" stroke="#facc15" stroke-width="3" stroke-linecap="round" class="wire-flow" style="display: none;"/>
+                    </svg>
+
+                    <!-- Appliance Area (Centered) -->
+                    <div id="appliance-container" class="relative z-10 flex flex-col items-center mt-10">
+                        <!-- LED Graphic -->
+                        <div id="svg-led" class="flex flex-col items-center hidden">
+                            <svg width="100" height="120" viewBox="0 0 100 120">
+                                <path id="led-bulb" d="M30 30 Q50 0 70 30 C90 60 70 80 50 80 C30 80 10 60 30 30 Z" fill="#475569" stroke="#94a3b8" stroke-width="3" transition="all 0.3s"/>
+                                <rect x="40" y="80" width="20" height="20" fill="#334155" rx="2"/>
+                                <path d="M40 90 L60 90 M40 95 L60 95" stroke="#94a3b8" stroke-width="2"/>
+                            </svg>
+                            <div id="led-rays" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden">
+                                <div class="w-24 h-24 bg-yellow-400 rounded-full opacity-30 animate-glow blur-xl"></div>
+                            </div>
+                        </div>
+
+                        <!-- Fan Graphic -->
+                        <div id="svg-fan" class="flex flex-col items-center hidden">
+                            <div class="relative w-24 h-24 rounded-full border-4 border-slate-400 bg-slate-800 flex items-center justify-center">
+                                <!-- Blades inside -->
+                                <svg width="100%" height="100%" viewBox="0 0 100 100" class="absolute inset-0">
+                                    <g id="fan-blades-group" style="transform-origin: 50px 50px;">
+                                        <path d="M 50 40 C 60 10, 80 20, 60 50 Z" fill="#38bdf8"/>
+                                        <path d="M 60 50 C 90 60, 80 80, 50 60 Z" fill="#38bdf8"/>
+                                        <path d="M 50 60 C 40 90, 20 80, 40 50 Z" fill="#38bdf8"/>
+                                        <path d="M 40 50 C 10 40, 20 20, 50 40 Z" fill="#38bdf8"/>
+                                    </g>
+                                    <circle cx="50" cy="50" r="10" fill="#cbd5e1"/>
+                                </svg>
+                            </div>
+                            <div class="w-4 h-12 bg-slate-500"></div>
+                            <div class="w-16 h-4 bg-slate-600 rounded-full"></div>
+                        </div>
+
+                        <!-- Heater Graphic -->
+                        <div id="svg-heater" class="flex flex-col items-center hidden">
+                            <div class="w-28 h-32 bg-slate-700 rounded-lg border-2 border-slate-500 flex justify-center py-2 gap-2 relative overflow-hidden">
+                                <div id="coil-1" class="w-4 h-full bg-slate-600 rounded-full transition-colors duration-1000"></div>
+                                <div id="coil-2" class="w-4 h-full bg-slate-600 rounded-full transition-colors duration-1000"></div>
+                                <div id="coil-3" class="w-4 h-full bg-slate-600 rounded-full transition-colors duration-1000"></div>
+                                <div id="heat-waves" class="absolute -top-10 flex gap-4 hidden">
+                                    <svg width="20" height="20" class="animate-heat fill-red-500" viewBox="0 0 24 24"><path d="M12,2A10,10,0,0,0,2,12a10,10,0,0,0,10,10,10,10,0,0,0,10-10A10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"/></svg>
+                                    <svg width="20" height="20" class="animate-heat fill-red-500" viewBox="0 0 24 24" style="animation-delay: 0.5s;"><path d="M12,2A10,10,0,0,0,2,12a10,10,0,0,0,10,10,10,10,0,0,0,10-10A10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"/></svg>
+                                </div>
+                            </div>
+                            <div class="w-32 h-4 bg-slate-800 rounded-full mt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Main Switch -->
+                    <div class="absolute bottom-6 right-6">
+                        <button onclick="toggleLabSwitch()" id="btn-lab-switch" class="font-cute bg-slate-600 hover:bg-slate-500 text-white px-6 py-3 rounded-xl shadow-lg border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 transition-all text-xl">
+                            전원 켜기 (ON)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Digital Meters Output -->
+                <div class="w-full bg-slate-800 rounded-b-xl border-2 border-t-0 border-slate-700 p-4 grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 shadow-md">
+                    
+                    <div class="flex flex-col items-center">
+                        <span class="text-sm text-slate-400 mb-1 font-cute">전압 (V)</span>
+                        <div class="digital-meter py-2 px-6 w-full max-w-[200px] text-center">
+                            <span id="lab-volts" class="text-2xl text-blue-400 font-mono text-shadow-sm">0 V</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center relative">
+                        <span class="text-sm text-slate-400 mb-1 font-cute">전류 (A)</span>
+                        <div class="digital-meter py-2 px-6 w-full max-w-[200px] text-center">
+                            <span id="lab-amps" class="text-2xl text-green-400 font-mono text-shadow-sm">0 A</span>
+                        </div>
+                        <div class="absolute top-1/2 -right-3 text-slate-500 font-bold hidden md:block">×</div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center relative">
+                        <span class="text-sm text-yellow-400 font-bold mb-1 font-cute">소비 전력 (W) = V × A</span>
+                        <div class="digital-meter py-2 px-6 w-full max-w-[200px] text-center border-yellow-500/50 shadow-[0_0_10px_rgba(250,204,21,0.2)]">
+                            <span id="lab-watts" class="text-2xl text-yellow-400 font-mono glow-yellow">0 W</span>
+                        </div>
+                        <div class="absolute top-1/2 -left-3 text-slate-500 font-bold hidden md:block">=</div>
+                    </div>
+
+                </div>
+
+                <!-- Quiz for Lab Step -->
+                <div id="lab-observation" class="bg-blue-900/30 p-5 rounded-xl border border-blue-500/50 hidden">
+                    <h3 class="font-cute text-lg text-blue-300 mb-2">🔍 실험 관찰 기록</h3>
+                    <p class="text-slate-200 mb-2">1. 현재 기구는 전기 에너지를 주로 어떤 에너지로 전환하나요?</p>
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="checkLabEnergy('빛')" class="font-cute bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded border border-slate-500 text-slate-300">빛 에너지</button>
+                        <button onclick="checkLabEnergy('역학적')" class="font-cute bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded border border-slate-500 text-slate-300">역학적 에너지</button>
+                        <button onclick="checkLabEnergy('열')" class="font-cute bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded border border-slate-500 text-slate-300">열 에너지</button>
+                    </div>
+                    <p id="msg-lab-energy" class="text-sm font-bold font-cute hidden mb-4"></p>
+
+                    <p class="text-slate-200 mb-2">2. 현재 기구의 소비 전력(1초 동안 사용하는 전기 에너지)은 얼마인가요?</p>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="input-watts" class="bg-slate-800 text-yellow-300 px-3 py-1 rounded border border-slate-600 w-24 text-center font-bold" placeholder="입력">
+                        <span class="text-slate-300">W (와트)</span>
+                        <button onclick="checkLabWatts()" class="font-cute bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded shadow ml-2">확인</button>
+                    </div>
+                    <p id="msg-lab-watts" class="text-sm font-bold font-cute hidden mt-2"></p>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="tab-law" class="tab-content hidden space-y-8 glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-4xl text-white text-center mb-6">💡 소비 전력과 전기 에너지</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Power Definition -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-yellow-500/50 shadow-[0_0_20px_rgba(250,204,21,0.1)] relative">
+                    <h3 class="font-cute text-2xl text-yellow-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt"></i> 소비 전력 (Power, P)</h3>
+                    <p class="text-slate-300 mb-4">
+                        전기 기구가 <strong>1초 동안 사용하는 전기 에너지</strong>의 양입니다. 단위는 <span class="font-bold text-yellow-300 tooltip">W (와트)<span class="tooltiptext">제임스 와트의 이름을 딴 전력의 단위</span></span>를 사용합니다.
+                    </p>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-700 text-center mb-4 text-xl">
+                        <p class="text-white">$$ \text{소비 전력} = \text{전압} \times \text{전류} $$</p>
+                        <p class="text-yellow-300 mt-2 font-mono">$$ 1\text{W} = 1\text{V} \times 1\text{A} $$</p>
+                    </div>
+                    <p class="text-sm text-slate-400">예: 220V 전압에서 0.5A 전류가 흐르는 TV의 소비 전력은 110W입니다.</p>
+                </div>
+
+                <!-- Electrical Energy Definition -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-green-500/50 shadow-[0_0_20px_rgba(52,211,153,0.1)] relative">
+                    <h3 class="font-cute text-2xl text-green-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-battery-half"></i> 전기 에너지 (Energy, E)</h3>
+                    <p class="text-slate-300 mb-4">
+                        전기 기구를 <strong>사용한 시간 동안 소비한 총 에너지</strong>입니다. 단위는 <span class="font-bold text-green-300 tooltip">J (줄)<span class="tooltiptext">제임스 프레스콧 줄의 이름을 딴 에너지 단위</span></span> 또는 Wh(와트시)를 사용합니다.
+                    </p>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-700 text-center mb-4 text-xl">
+                        <p class="text-white">$$ \text{전기 에너지} = \text{소비 전력} \times \text{사용 시간} $$</p>
+                        <p class="text-green-300 mt-2 font-mono">$$ 1\text{J} = 1\text{W} \times 1\text{s(초)} $$</p>
+                        <p class="text-green-300 font-mono">$$ 1\text{Wh} = 1\text{W} \times 1\text{h(시간)} $$</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Efficient Use Section -->
+            <div class="bg-slate-800/80 p-6 rounded-2xl border border-blue-500/30 mt-8">
+                <h3 class="font-cute text-2xl text-blue-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-leaf"></i> 전기 에너지의 효율적인 활용</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900 p-4 rounded-xl">
+                        <h4 class="text-yellow-300 font-bold mb-2">🔌 대기 전력 (Standby Power)</h4>
+                        <p class="text-sm text-slate-300">전원을 끈 상태에서도 플러그가 꽂혀 있어 기기가 소모하는 전기 에너지입니다. 쓰지 않는 기기의 플러그를 뽑거나 <strong>멀티탭 스위치를 끄면</strong> 에너지를 절약할 수 있습니다.</p>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center border-4 border-green-500 font-bold text-green-600 text-2xl shrink-0">1등급</div>
+                        <div>
+                            <h4 class="text-green-300 font-bold mb-2">⭐ 에너지 소비 효율 등급</h4>
+                            <p class="text-sm text-slate-300">1등급에 가까울수록 에너지를 절약하는 제품입니다. 가전제품을 살 때 등급 라벨을 확인하는 것이 좋습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="tab-summary" class="tab-content hidden space-y-8 glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-4xl text-white text-center mb-6">💯 핵심 개념 확인 퀴즈</h2>
+            
+            <div class="space-y-6 max-w-3xl mx-auto">
+                
+                <div class="bg-slate-800/70 p-6 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-4"><strong>Q1.</strong> 1초 동안 가전제품이 사용하는 전기 에너지의 양을 나타내며, 이 값이 클수록 같은 시간 동안 더 많은 에너지를 전환하는 물리량은 무엇인가요?</p>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="q1-ans" class="q-box" placeholder="단어 입력">
+                        <button onclick="checkQuiz('q1', '소비전력')" class="font-cute bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-white text-sm">정답 확인</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">힌트: 띄어쓰기 없이 4글자로 적어주세요.</p>
+                    <p id="q1-feedback" class="text-sm mt-2 hidden"></p>
+                </div>
+
+                <div class="bg-slate-800/70 p-6 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-4"><strong>Q2.</strong> 같은 밝기의 빛을 낼 때 백열전구(60W)와 LED 전구(10W) 중, 전기 에너지를 빛 에너지로 더 많이 전환하여 <strong>에너지 효율</strong>이 높은 것은 무엇인가요?</p>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="q2-ans" class="q-box w-32" placeholder="단어 입력"> 
+                        <button onclick="checkQuiz('q2', 'LED전구')" class="font-cute bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-white text-sm">정답 확인</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">힌트: 띄어쓰기 없이 5글자(영어포함)로 적어주세요.</p>
+                    <p id="q2-feedback" class="text-sm mt-2 hidden"></p>
+                </div>
+
+                <div class="bg-slate-800/70 p-6 rounded-xl border border-slate-600">
+                    <p class="text-lg text-slate-200 mb-4"><strong>Q3.</strong> 전원을 끄더라도 플러그를 꽂아 두면 낭비되는 전력을 무엇이라고 하나요?</p>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="q3-ans" class="q-box w-32" placeholder="단어 입력"> 
+                        <button onclick="checkQuiz('q3', '대기전력')" class="font-cute bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-white text-sm">정답 확인</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">힌트: 띄어쓰기 없이 4글자로 적어주세요.</p>
+                    <p id="q3-feedback" class="text-sm mt-2 hidden"></p>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="tab-sts" class="tab-content hidden space-y-6 glass-panel p-6 md:p-10 mb-8">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-purple-900/50 text-purple-300 rounded-full text-sm font-bold border border-purple-500/30 mb-3">S T S (Science, Technology, Society)</span>
+                <h2 class="font-cute text-3xl md:text-4xl text-white glow-purple mb-4">🚀 조명 기술의 눈부신 진화</h2>
+                <p class="text-slate-300 max-w-2xl mx-auto">전기 에너지를 빛 에너지로 바꾸는 기술은 인류의 밤을 밝혔습니다. 노벨상으로 빛나는 조명 기술의 발전과 그 핵심 구성 물질들을 알아봅시다. (카드를 클릭하세요!)</p>
+            </div>
+
+            <!-- Lighting History Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Incandescent -->
+                <div onclick="openStsModal('incan')" class="mat-card mat-incan p-5 rounded-2xl text-center group">
+                    <div class="h-24 flex items-center justify-center text-5xl text-yellow-500/50 group-hover:text-yellow-400 group-hover:scale-110 transition-all mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                        <i class="fa-regular fa-lightbulb"></i>
+                    </div>
+                    <h3 class="font-cute text-xl text-yellow-300 mb-2">백열전구</h3>
+                    <div class="flex justify-center gap-1 mb-3">
+                        <span class="concept-blank text-sm" onclick="event.stopPropagation(); revealBlank(this)">W 텅스텐</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">에디슨이 상용화한 최초의 실용적 조명. 열이 많이 나 효율이 낮습니다.</p>
+                </div>
+
+                <!-- Fluorescent -->
+                <div onclick="openStsModal('fluor')" class="mat-card mat-fluor p-5 rounded-2xl text-center group">
+                    <div class="h-24 flex items-center justify-center text-5xl text-slate-400 group-hover:text-white group-hover:scale-110 transition-all mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        <i class="fa-solid fa-grip-lines"></i>
+                    </div>
+                    <h3 class="font-cute text-xl text-slate-200 mb-2">형광등</h3>
+                    <div class="flex justify-center gap-1 mb-3">
+                        <span class="concept-blank text-sm" onclick="event.stopPropagation(); revealBlank(this)">Hg 수은</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">자외선을 빛으로 변환. 백열등보다 낫지만 환경 문제(수은)가 있습니다.</p>
+                </div>
+
+                <!-- LED -->
+                <div onclick="openStsModal('led')" class="mat-card mat-led p-5 rounded-2xl text-center group">
+                    <div class="h-24 flex items-center justify-center text-5xl text-blue-500/50 group-hover:text-blue-400 group-hover:scale-110 transition-all mb-4 drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3 class="font-cute text-xl text-blue-300 mb-2">청색 LED</h3>
+                    <div class="flex justify-center gap-1 mb-3">
+                        <span class="concept-blank text-sm" onclick="event.stopPropagation(); revealBlank(this)">GaN 질화갈륨</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">2014년 노벨물리학상. 백색광을 완성하여 획기적인 에너지 절약 달성.</p>
+                </div>
+
+                <!-- Quantum Dot -->
+                <div onclick="openStsModal('qd')" class="mat-card mat-qd p-5 rounded-2xl text-center group">
+                    <div class="h-24 flex items-center justify-center text-5xl text-pink-500/50 group-hover:text-pink-400 group-hover:scale-110 transition-all mb-4 drop-shadow-[0_0_15px_rgba(244,114,182,0.5)]">
+                        <i class="fa-solid fa-atom"></i>
+                    </div>
+                    <h3 class="font-cute text-xl text-pink-300 mb-2">양자점 (Q.D)</h3>
+                    <div class="flex flex-wrap justify-center gap-1 mb-3">
+                        <span class="concept-blank text-sm" onclick="event.stopPropagation(); revealBlank(this)">Cd 카드뮴</span>
+                        <span class="concept-blank text-sm mt-1" onclick="event.stopPropagation(); revealBlank(this)">InP 인화인듐</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">2023년 노벨화학상. 크기에 따라 색이 변하는 나노 물질. 차세대 디스플레이.</p>
+                </div>
+
+            </div>
+
+            <!-- Lighting Efficiency Comparison -->
+            <div class="bg-slate-800/80 p-6 rounded-2xl border border-green-500/30 mt-8">
+                <h3 class="font-cute text-2xl text-green-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-line"></i> 조명의 소비 전력과 에너지 전환 비교</h3>
+                <p class="text-slate-300 mb-4 text-sm md:text-base">같은 밝기(광속)를 낼 때, 조명 기술이 발전할수록 <strong>전기 에너지가 열 에너지로 낭비되지 않고 빛 에너지로 더 많이 전환</strong>됩니다. 따라서 <strong>소비 전력이 줄어들고 에너지 효율은 높아집니다.</strong> 일상생활에서 효율이 높은 조명을 선택하는 것은 전기 에너지를 절약하는 현명한 방법입니다.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-slate-700/50 text-yellow-300 font-cute text-lg">
+                                <th class="p-3 border-b border-slate-600">조명 종류</th>
+                                <th class="p-3 border-b border-slate-600">같은 밝기일 때 소비 전력</th>
+                                <th class="p-3 border-b border-slate-600">에너지 효율 (빛으로 전환되는 비율)</th>
+                                <th class="p-3 border-b border-slate-600">에너지 전환 특징</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-200">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-3 border-b border-slate-700 font-bold">백열전구</td>
+                                <td class="p-3 border-b border-slate-700 text-red-400">가장 높음 (약 60W)</td>
+                                <td class="p-3 border-b border-slate-700 text-red-400">매우 낮음 (약 5%)</td>
+                                <td class="p-3 border-b border-slate-700 text-sm">전기 에너지의 대부분(95%)이 열 에너지로 낭비됨</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-3 border-b border-slate-700 font-bold">형광등</td>
+                                <td class="p-3 border-b border-slate-700 text-yellow-400">보통 (약 15W)</td>
+                                <td class="p-3 border-b border-slate-700 text-yellow-400">보통 (약 20%)</td>
+                                <td class="p-3 border-b border-slate-700 text-sm">백열전구보다 빛 에너지 전환율이 높지만 열 손실 존재</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-3 border-b border-slate-700 font-bold">LED 전구</td>
+                                <td class="p-3 border-b border-slate-700 text-green-400">매우 낮음 (약 8W)</td>
+                                <td class="p-3 border-b border-slate-700 text-green-400">매우 높음 (약 40% 이상)</td>
+                                <td class="p-3 border-b border-slate-700 text-sm">열 손실이 거의 없어 적은 전기 에너지로도 밝은 빛 방출</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-3 border-b border-slate-700 font-bold">양자점 (Q.D)</td>
+                                <td class="p-3 border-b border-slate-700 text-pink-400">낮음 (디스플레이용)</td>
+                                <td class="p-3 border-b border-slate-700 text-pink-400">매우 높음</td>
+                                <td class="p-3 border-b border-slate-700 text-sm">자연광에 가까운 뛰어난 색 재현력과 함께 에너지 손실 최소화</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table Quiz -->
+            <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-600 mt-6 shadow-inner">
+                <h4 class="font-cute text-xl text-yellow-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-pen-nib"></i> 표 분석 퀴즈</h4>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+                            <p class="text-slate-200 flex-1 text-sm md:text-base"><strong>1.</strong> 전기 에너지가 대부분 열 에너지로 전환되어 에너지를 가장 심하게 낭비하는 조명은?</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="sts-q1-ans" class="q-box w-32" placeholder="조명 이름">
+                                <button onclick="checkQuiz('sts-q1', '백열전구')" class="font-cute bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-white text-sm whitespace-nowrap">확인</button>
+                            </div>
+                        </div>
+                        <p id="sts-q1-feedback" class="text-sm hidden mt-1 sm:text-right font-cute"></p>
+                    </div>
+                    
+                    <div class="border-t border-slate-700/50 pt-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+                            <p class="text-slate-200 flex-1 text-sm md:text-base"><strong>2.</strong> 열 손실이 거의 없어 적은 전기 에너지로도 밝은 빛을 내어 에너지를 가장 절약할 수 있는 일반적인 조명은? (양자점 제외)</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="sts-q2-ans" class="q-box w-32" placeholder="조명 이름">
+                                <button onclick="checkQuiz('sts-q2', 'LED전구, LED, 엘이디, 엘이디전구')" class="font-cute bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-white text-sm whitespace-nowrap">확인</button>
+                            </div>
+                        </div>
+                        <p id="sts-q2-feedback" class="text-sm hidden mt-1 sm:text-right font-cute"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 mb-4">
+            <p class="text-slate-500 text-sm font-cute">제작자: 해누리중학교 과학교사 남국현</p>
+        </footer>
+
+    </div>
+
+    <div id="sts-modal" class="history-modal-overlay">
+        <div class="history-modal-card">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-5 border-b border-slate-700/50">
+                <h3 id="modal-title" class="font-cute text-2xl text-white">조명 이름</h3>
+                <button onclick="closeStsModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6">
+                <!-- SVG Animation Container -->
+                <div id="modal-anim" class="w-full h-48 bg-slate-900 rounded-xl border border-slate-700 mb-6 flex items-center justify-center overflow-hidden relative">
+                    <!-- Dynamic SVG injected via JS -->
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                        <h4 class="text-yellow-400 font-cute mb-1"><i class="fa-solid fa-microscope"></i> 핵심 원소 및 원리</h4>
+                        <p id="modal-principle" class="text-slate-300 text-sm leading-relaxed">원리 설명이 들어갑니다.</p>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                        <h4 class="text-green-400 font-cute mb-1"><i class="fa-solid fa-leaf"></i> 에너지 효율</h4>
+                        <p id="modal-efficiency" class="text-slate-300 text-sm leading-relaxed">효율 설명이 들어갑니다.</p>
+                    </div>
+                    <div id="modal-nobel-box" class="bg-blue-900/30 p-4 rounded-lg border border-blue-500/30 hidden">
+                        <h4 class="text-blue-300 font-cute mb-1"><i class="fa-solid fa-award"></i> 과학사 (노벨상)</h4>
+                        <p id="modal-nobel" class="text-slate-300 text-sm leading-relaxed">노벨상 설명이 들어갑니다.</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <script>
+        // Init Tone.js Synth for sound effects
+        // Use PolySynth to avoid overlapping note errors on a single Synth
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.volume.value = -10;
+
+        function playSound(type) {
+            if(Tone.context.state !== 'running') Tone.start();
+            
+            const now = Tone.now();
+            
+            if(type === 'click') synth.triggerAttackRelease("C5", "32n", now);
+            if(type === 'reveal') synth.triggerAttackRelease("E5", "16n", now);
+            if(type === 'correct') {
+                synth.triggerAttackRelease("C5", "8n", now);
+                synth.triggerAttackRelease("E5", "8n", now + 0.1);
+                synth.triggerAttackRelease("G5", "4n", now + 0.2);
+            }
+            if(type === 'wrong') {
+                synth.triggerAttackRelease("G3", "8n", now);
+            }
+            if(type === 'switchOn') {
+                synth.triggerAttackRelease("G4", "16n", now);
+            }
+            if(type === 'switchOff') {
+                synth.triggerAttackRelease("C4", "16n", now);
+            }
+        }
+
+        function startApp() {
+            playSound('correct');
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            openTab('theory');
+        }
+
+        function openTab(tabId) {
+            playSound('click');
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('active');
+            
+            // Re-render math if needed
+            if (window.MathJax) { MathJax.typesetPromise(); }
+        }
+
+        // Fill-in-the-blank reveal
+        function revealBlank(el) {
+            if (!el.classList.contains('revealed')) {
+                playSound('reveal');
+                el.classList.add('revealed');
+            }
+        }
+
+        // --- 가상 실험 (Virtual Lab) State ---
+        let currentAppliance = 'led'; // led, fan, heater
+        let isLabOn = false;
+        
+        const appliances = {
+            led: { name: 'LED 전구', watts: 11, amps: 0.05, energy: '빛' },
+            fan: { name: '선풍기', watts: 44, amps: 0.2, energy: '역학적' },
+            heater: { name: '전기난로', watts: 1100, amps: 5.0, energy: '열' }
+        };
+
+        function selectAppliance(type) {
+            playSound('click');
+            // Reset Lab switch if ON
+            if(isLabOn) toggleLabSwitch();
+
+            currentAppliance = type;
+            
+            // UI Update Buttons
+            ['led', 'fan', 'heater'].forEach(app => {
+                const btn = document.getElementById(`btn-app-${app}`);
+                if(app === type) {
+                    btn.classList.replace('bg-slate-700', 'bg-blue-600');
+                    btn.classList.replace('text-slate-400', 'text-white');
+                    btn.classList.replace('border-slate-600', 'border-blue-400');
+                } else {
+                    btn.classList.replace('bg-blue-600', 'bg-slate-700');
+                    btn.classList.replace('text-white', 'text-slate-400');
+                    btn.classList.replace('border-blue-400', 'border-slate-600');
+                }
+            });
+
+            // Update Graphic
+            document.getElementById('svg-led').classList.add('hidden');
+            document.getElementById('svg-fan').classList.add('hidden');
+            document.getElementById('svg-heater').classList.add('hidden');
+            document.getElementById(`svg-${type}`).classList.remove('hidden');
+            
+            // Reset Quiz messages
+            document.getElementById('msg-lab-energy').classList.add('hidden');
+            document.getElementById('msg-lab-watts').classList.add('hidden');
+            document.getElementById('input-watts').value = '';
+        }
+
+        function toggleLabSwitch() {
+            isLabOn = !isLabOn;
+            const btn = document.getElementById('btn-lab-switch');
+            const cordFlow = document.getElementById('cord-flow');
+            
+            if (isLabOn) {
+                playSound('switchOn');
+                btn.textContent = '전원 끄기 (OFF)';
+                btn.classList.replace('bg-slate-600', 'bg-red-500');
+                btn.classList.replace('hover:bg-slate-500', 'hover:bg-red-400');
+                btn.classList.replace('border-slate-800', 'border-red-700');
+                
+                cordFlow.style.display = 'block';
+                
+                // Update Meters
+                const appData = appliances[currentAppliance];
+                document.getElementById('lab-volts').textContent = '220 V';
+                document.getElementById('lab-amps').textContent = appData.amps + ' A';
+                document.getElementById('lab-watts').textContent = appData.watts + ' W';
+                
+                // Start Animation
+                startApplianceAnimation(currentAppliance);
+                
+                // Show Quiz
+                document.getElementById('lab-observation').classList.remove('hidden');
+
+            } else {
+                playSound('switchOff');
+                btn.textContent = '전원 켜기 (ON)';
+                btn.classList.replace('bg-red-500', 'bg-slate-600');
+                btn.classList.replace('hover:bg-red-400', 'hover:bg-slate-500');
+                btn.classList.replace('border-red-700', 'border-slate-800');
+                
+                cordFlow.style.display = 'none';
+                
+                // Reset Meters
+                document.getElementById('lab-volts').textContent = '0 V';
+                document.getElementById('lab-amps').textContent = '0 A';
+                document.getElementById('lab-watts').textContent = '0 W';
+                
+                // Stop Animation
+                stopApplianceAnimation(currentAppliance);
+            }
+        }
+
+        function startApplianceAnimation(type) {
+            if(type === 'led') {
+                document.getElementById('led-bulb').setAttribute('fill', '#fef08a'); // Bright yellow
+                document.getElementById('led-rays').classList.remove('hidden');
+            } else if (type === 'fan') {
+                document.getElementById('fan-blades-group').classList.add('animate-spin-fast');
+            } else if (type === 'heater') {
+                document.getElementById('coil-1').classList.replace('bg-slate-600', 'bg-orange-500');
+                document.getElementById('coil-2').classList.replace('bg-slate-600', 'bg-red-500');
+                document.getElementById('coil-3').classList.replace('bg-slate-600', 'bg-orange-500');
+                document.getElementById('heat-waves').classList.remove('hidden');
+            }
+        }
+
+        function stopApplianceAnimation(type) {
+            if(type === 'led') {
+                document.getElementById('led-bulb').setAttribute('fill', '#475569');
+                document.getElementById('led-rays').classList.add('hidden');
+            } else if (type === 'fan') {
+                document.getElementById('fan-blades-group').classList.remove('animate-spin-fast');
+            } else if (type === 'heater') {
+                document.getElementById('coil-1').classList.replace('bg-orange-500', 'bg-slate-600');
+                document.getElementById('coil-2').classList.replace('bg-red-500', 'bg-slate-600');
+                document.getElementById('coil-3').classList.replace('bg-orange-500', 'bg-slate-600');
+                document.getElementById('heat-waves').classList.add('hidden');
+            }
+        }
+
+        // Lab Quiz Checks
+        function checkLabEnergy(selected) {
+            const correctEnergy = appliances[currentAppliance].energy;
+            const msgEl = document.getElementById('msg-lab-energy');
+            msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            
+            if (selected === correctEnergy) {
+                playSound('correct');
+                msgEl.textContent = `정답입니다! 전기 에너지가 주로 ${selected} 에너지로 전환됩니다.`;
+                msgEl.classList.add('text-green-400');
+            } else {
+                playSound('wrong');
+                msgEl.textContent = `다시 생각해보세요. 빛, 역학적, 열 에너지 중 무엇이 가장 주된 목적일까요?`;
+                msgEl.classList.add('text-red-400');
+            }
+        }
+
+        function checkLabWatts() {
+            const inputVal = parseInt(document.getElementById('input-watts').value);
+            const correctWatts = appliances[currentAppliance].watts;
+            const msgEl = document.getElementById('msg-lab-watts');
+            msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400');
+
+            if (inputVal === correctWatts) {
+                playSound('correct');
+                msgEl.innerHTML = `정답입니다! 220V × ${appliances[currentAppliance].amps}A = <strong>${correctWatts}W</strong> 입니다.`;
+                msgEl.classList.add('text-green-400');
+            } else {
+                playSound('wrong');
+                msgEl.textContent = `오답입니다. 전압(V)과 전류(A)를 곱해보세요.`;
+                msgEl.classList.add('text-red-400');
+            }
+        }
+
+        // --- Quiz Section ---
+        function checkQuiz(qId, correctAns) {
+            const inputEl = document.getElementById(qId + '-ans');
+            const feedbackEl = document.getElementById(qId + '-feedback');
+            
+            // 공백 제거 및 소문자 변환 (유연한 채점)
+            const val = inputEl.value.trim().replace(/\s+/g, '').toLowerCase();
+            
+            // 정답을 배열로 변환하여 다중 정답 지원
+            const answers = correctAns.split(',').map(ans => ans.trim().replace(/\s+/g, '').toLowerCase());
+
+            feedbackEl.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            inputEl.classList.remove('correct', 'wrong');
+
+            if(answers.includes(val) && val !== '') {
+                playSound('correct');
+                inputEl.classList.add('correct');
+                feedbackEl.textContent = '🎉 정답입니다!';
+                feedbackEl.classList.add('text-green-400');
+            } else {
+                playSound('wrong');
+                inputEl.classList.add('wrong');
+                feedbackEl.textContent = '❌ 다시 확인해보세요.';
+                feedbackEl.classList.add('text-red-400');
+                inputEl.value = ''; // clear for retry
+            }
+        }
+
+        // --- STS Modals ---
+        const stsData = {
+            incan: {
+                title: "백열전구 (Incandescent Lamp)",
+                principle: "유리구 안에 <strong><span class='concept-blank' onclick='revealBlank(this)'>W (텅스텐)</span></strong> 필라멘트를 넣고 전류를 흘려줍니다. 전류가 흐를 때 생기는 강한 마찰(저항) 때문에 필라멘트가 3,000도 이상으로 매우 뜨거워지면서 빛을 냅니다.",
+                efficiency: "전기 에너지의 약 95%가 <strong>열 에너지로 손실</strong>되고 약 5%만 빛으로 전환되어 효율이 매우 낮습니다. 현재는 점차 퇴출되고 있습니다.",
+                nobel: "",
+                svg: `
+                    <svg viewBox="0 0 100 100" width="120" height="120">
+                        <path d="M 30 40 C 30 10, 70 10, 70 40 C 70 60, 60 70, 60 80 L 40 80 C 40 70, 30 60, 30 40 Z" fill="rgba(255,255,255,0.1)" stroke="#cbd5e1" stroke-width="2"/>
+                        <path d="M 40 80 L 60 80 L 55 95 L 45 95 Z" fill="#64748b"/>
+                        <!-- Tungsten Filament -->
+                        <path d="M 45 80 L 45 50 L 55 50 L 55 80" fill="none" stroke="#94a3b8" stroke-width="2"/>
+                        <path d="M 45 50 Q 50 40 55 50" fill="none" stroke="#facc15" stroke-width="3" class="animate-glow"/>
+                        <!-- Heat waves -->
+                        <path d="M 20 20 Q 25 15 30 20" fill="none" stroke="#ef4444" stroke-width="2" class="animate-heat"/>
+                        <path d="M 70 20 Q 75 15 80 20" fill="none" stroke="#ef4444" stroke-width="2" class="animate-heat"/>
+                    </svg>
+                `
+            },
+            fluor: {
+                title: "형광등 (Fluorescent Lamp)",
+                principle: "관 내부에 <strong><span class='concept-blank' onclick='revealBlank(this)'>Hg (수은)</span></strong> 기체를 넣고 전기를 흘리면 보이지 않는 '자외선'이 나옵니다. 이 자외선이 유리관 안쪽에 발라둔 형광 물질에 부딪히면서 우리가 볼 수 있는 하얀 빛(가시광선)으로 바뀝니다.",
+                efficiency: "백열전구보다 효율이 좋고 수명이 길지만, 수은과 같은 유해 물질을 포함하여 환경 문제를 일으킬 수 있습니다.",
+                nobel: "",
+                svg: `
+                    <svg viewBox="0 0 200 100" width="200" height="100">
+                        <!-- Tube -->
+                        <rect x="20" y="40" width="160" height="20" rx="10" fill="rgba(255,255,255,0.8)" filter="drop-shadow(0 0 10px #cbd5e1)"/>
+                        <!-- Pins -->
+                        <rect x="10" y="45" width="10" height="2" fill="#94a3b8"/><rect x="10" y="53" width="10" height="2" fill="#94a3b8"/>
+                        <rect x="180" y="45" width="10" height="2" fill="#94a3b8"/><rect x="180" y="53" width="10" height="2" fill="#94a3b8"/>
+                        <!-- UV to Visible animation -->
+                        <circle cx="60" cy="50" r="2" fill="#c084fc" class="photon"/>
+                        <circle cx="100" cy="50" r="2" fill="#c084fc" class="photon" style="animation-delay: 0.3s;"/>
+                        <circle cx="140" cy="50" r="2" fill="#c084fc" class="photon" style="animation-delay: 0.6s;"/>
+                    </svg>
+                `
+            },
+            led: {
+                title: "청색 LED (Light Emitting Diode)",
+                principle: "특수한 반도체인 <strong><span class='concept-blank' onclick='revealBlank(this)'>GaN (질화갈륨)</span></strong> 등에 전류를 흘려주면, 반도체 안에서 (+) 성질과 (-) 성질을 가진 알갱이들이 서로 만나면서 남는 에너지를 직접 빛으로 내보냅니다. 백열등처럼 뜨겁게 열을 낼 필요가 없어 매우 효율적입니다.",
+                efficiency: "열 손실이 거의 없어 <strong>소비 전력이 매우 낮고</strong> 수명이 반영구적입니다. 현대 조명의 표준이 되었습니다.",
+                nobel: "청색 LED를 발명한 아카사키 이사무, 아마노 히로시, 나카무라 슈지는 에너지 절약형 백색광원을 가능케 한 공로로 <strong>2014년 노벨 물리학상</strong>을 공동 수상했습니다.",
+                svg: `
+                    <svg viewBox="0 0 100 100" width="120" height="120">
+                        <!-- LED Dome -->
+                        <path d="M 30 60 L 30 40 C 30 20, 70 20, 70 40 L 70 60 Z" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="2"/>
+                        <!-- Chip inside -->
+                        <rect x="45" y="50" width="10" height="10" fill="#0284c7" class="animate-glow"/>
+                        <!-- Base -->
+                        <rect x="25" y="60" width="50" height="10" rx="2" fill="#64748b"/>
+                        <!-- Legs -->
+                        <line x1="40" y1="70" x2="40" y2="90" stroke="#94a3b8" stroke-width="3"/>
+                        <line x1="60" y1="70" x2="60" y2="95" stroke="#94a3b8" stroke-width="3"/>
+                        <!-- Blue Light Rays -->
+                        <path d="M 50 30 L 50 10 M 35 40 L 15 30 M 65 40 L 85 30" stroke="#38bdf8" stroke-width="2" class="animate-glow" stroke-linecap="round"/>
+                    </svg>
+                `
+            },
+            qd: {
+                title: "양자점 (Quantum Dot)",
+                principle: "아주아주 작은 나노미터(nm) 크기의 반도체 입자입니다. 이 입자들은 물질이 같아도 <strong>입자의 크기에 따라 스스로 다른 색의 빛</strong>을 내는 마법 같은 성질이 있습니다. 과거에는 <strong><span class='concept-blank' onclick='revealBlank(this)'>Cd (카드뮴)</span></strong>을 주로 썼으나, 독성 문제로 최근에는 <strong><span class='concept-blank' onclick='revealBlank(this)'>InP (인화인듐)</span></strong>을 사용합니다.",
+                efficiency: "색 순도가 매우 높아 자연색에 가까운 빛을 내며, 주로 차세대 고화질 디스플레이(QLED) 백라이트로 사용됩니다.",
+                nobel: "양자점을 발견하고 합성법을 개발한 문지 바웬디, 루이스 브루스, 알렉세이 예키모프는 나노기술의 씨앗을 뿌린 공로로 <strong>2023년 노벨 화학상</strong>을 수상했습니다.",
+                svg: `
+                    <svg viewBox="0 0 300 120" width="300" height="120">
+                        <!-- Small Blue QD -->
+                        <circle cx="50" cy="50" r="10" fill="#3b82f6" filter="drop-shadow(0 0 10px #3b82f6)"/>
+                        <text x="50" y="80" fill="#94a3b8" font-size="12" text-anchor="middle">작은 크기 (파란빛)</text>
+                        
+                        <!-- Medium Green QD -->
+                        <circle cx="150" cy="50" r="15" fill="#22c55e" filter="drop-shadow(0 0 10px #22c55e)"/>
+                        <text x="150" y="80" fill="#94a3b8" font-size="12" text-anchor="middle">중간 크기 (초록빛)</text>
+                        
+                        <!-- Large Red QD -->
+                        <circle cx="250" cy="50" r="20" fill="#ef4444" filter="drop-shadow(0 0 10px #ef4444)"/>
+                        <text x="250" y="80" fill="#94a3b8" font-size="12" text-anchor="middle">큰 크기 (붉은빛)</text>
+                        
+                        <path d="M 40 30 Q 150 -10, 260 30" fill="none" stroke="#facc15" stroke-width="2" stroke-dasharray="5 5" class="wire-flow"/>
+                    </svg>
+                `
+            }
+        };
+
+        function openStsModal(type) {
+            playSound('click');
+            const data = stsData[type];
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-principle').innerHTML = data.principle;
+            document.getElementById('modal-efficiency').innerHTML = data.efficiency;
+            
+            const nobelBox = document.getElementById('modal-nobel-box');
+            if(data.nobel) {
+                document.getElementById('modal-nobel').innerHTML = data.nobel;
+                nobelBox.classList.remove('hidden');
+            } else {
+                nobelBox.classList.add('hidden');
+            }
+
+            document.getElementById('modal-anim').innerHTML = data.svg;
+            document.getElementById('sts-modal').classList.add('active');
+        }
+
+        function closeStsModal() {
+            playSound('click');
+            document.getElementById('sts-modal').classList.remove('active');
+            // Clear SVG to stop animations running in background
+            setTimeout(() => { document.getElementById('modal-anim').innerHTML = ''; }, 300);
+        }
+
+        // Initialize virtual lab to LED default when page loads
+        window.onload = () => {
+            selectAppliance('led');
+        };
+
+    </script>
+</body>
+</html>
