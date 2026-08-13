@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7.3.1. 전류가 흐르는 코일 주위의 자기장 🧲</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-darker: #020617; 
+            --panel-bg: rgba(30, 41, 59, 0.75); 
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-pink: #f472b6;
+            --neon-yellow: #facc15;
+            --neon-red: #ef4444;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-darker);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(239, 68, 68, 0.08), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.08), transparent 40%);
+            background-attachment: fixed;
+            margin: 0; overflow-x: hidden; touch-action: manipulation;
+            color: var(--text-main); line-height: 1.6;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-blue { text-shadow: 0 0 12px rgba(56,189,248,0.7); }
+        .glow-yellow { text-shadow: 0 0 12px rgba(250,204,21,0.7); }
+        .glow-green { text-shadow: 0 0 12px rgba(52,211,153,0.7); }
+        .glow-red { text-shadow: 0 0 12px rgba(239,68,68,0.7); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes flow {
+            from { stroke-dashoffset: 40; }
+            to { stroke-dashoffset: 0; }
+        }
+        .wire-flow {
+            stroke-dasharray: 10 10;
+            animation: flow 1s linear infinite;
+        }
+
+        .concept-blank {
+            display: inline-block; background: rgba(56, 189, 248, 0.12);
+            color: transparent; border-bottom: 3px dashed var(--neon-blue);
+            padding: 0 12px; margin: 0 4px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; position: relative; font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-blue); font-size: 0.85rem; font-family: 'Jua';
+            opacity: 0.8; animation: pulse-glow-blue 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow-blue { 0% { opacity: 0.5; } 100% { opacity: 1; text-shadow: 0 0 10px #38bdf8; } }
+        
+        .concept-blank.revealed {
+            background: rgba(56, 189, 248, 0.22); color: var(--neon-blue);
+            border-bottom: 3px solid var(--neon-blue); transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { display: none; }
+
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.3s; border: 1px solid transparent; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ef4444, #3b82f6);
+            border-color: rgba(255,255,255,0.3); box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        /* Compass and Magnet Styling */
+        .compass-needle { 
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: center;
+            transform-box: fill-box;
+        }
+        .iron-filing { opacity: 0; transition: all 1s ease; transform-origin: center; }
+        .iron-filing.active { opacity: 0.6; }
+
+        .q-box {
+            background: rgba(15, 23, 42, 0.8); border: none; border-bottom: 2px dashed var(--neon-blue);
+            color: var(--neon-blue); padding: 4px 8px; font-weight: bold; text-align: center;
+            width: 110px; transition: all 0.3s;
+        }
+        .q-box:focus { outline: none; border-bottom-style: solid; box-shadow: 0 10px 10px -10px var(--neon-blue); }
+        .q-box.correct { border-bottom-color: var(--neon-green); color: var(--neon-green); background: rgba(52, 211, 153, 0.15); }
+        .q-box.wrong { border-bottom-color: var(--neon-pink); color: var(--neon-pink); background: rgba(244, 114, 182, 0.15); }
+
+        .toggle-btn { transition: all 0.2s; }
+        .toggle-btn.selected { background-color: #3b82f6; color: white; border-color: #2563eb; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+
+        /* Atom Animation */
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+        }
+        .electron { animation: orbit 3s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .electron-spin { animation: spin 1s linear infinite; transform-origin: center; }
+
+        .el-btn {
+            background: rgba(30, 41, 59, 0.8); border: 1px solid var(--neon-purple);
+            color: #fff; padding: 12px 5px; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s; text-align: center; font-weight: bold; font-family: 'Jua', sans-serif;
+        }
+        .el-btn:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 15px var(--neon-purple); transform: translateY(-3px); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-content { background: var(--bg-dark); border: 2px solid var(--neon-purple); border-radius: 12px; padding: 25px; max-width: 650px; width: 100%; box-shadow: 0 0 35px rgba(192, 132, 252, 0.4); max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-close { background: var(--neon-purple); color: #000; border: none; padding: 8px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; float: right; font-family: 'Jua', sans-serif; transition: transform 0.2s; }
+        .modal-close:hover { transform: scale(1.05); }
+        
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.95rem; }
+        .info-table td { padding: 10px 5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .info-table td.label { width: 35%; font-weight: bold; color: #94a3b8; }
+        
+        .draggable { cursor: grab; user-select: none; touch-action: none; z-index: 50; transition: transform 0.1s; display: inline-block; }
+        .draggable:active { cursor: grabbing; }
+        .dropzone { border: 2px dashed #64748b; transition: all 0.3s; }
+        .dropzone.dragover { background: rgba(255,255,255,0.1); border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950 px-4">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-magnet text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]"></i>
+                <i class="fa-solid fa-compass text-slate-300 drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"></i>
+                <i class="fa-solid fa-bolt text-blue-400 drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"></i>
+            </div>
+            <h1 class="text-center font-cute text-3xl sm:text-5xl md:text-6xl text-white mb-4 glow-red">7.3.1. 전류가 흐르는 코일 주위의 자기장</h1>
+            <p class="text-xl md:text-2xl text-slate-300 mb-8 font-light">보이지 않는 자기력을 찾아서 🧲</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-slate-800/80 p-6 rounded-2xl border border-slate-600 shadow-xl">
+                <h3 class="font-cute text-2xl text-red-400 mb-3 text-center">💡 학습 설계 (학습 순서)</h3>
+                <ul class="text-slate-200 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-400"></i> 1단계: 자기장과 자기력선 뜻 알기</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-400"></i> 2단계: 코일 주위 자기장 가상 실험</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-400"></i> 3단계: 규칙 스스로 찾고 정리하기</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-400"></i> 4단계: 핵심 개념 확인 퀴즈</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-blue-400"></i> 5단계: 심화 (영구 자석의 비밀: 전자 스핀)</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 hover:from-red-400 hover:to-blue-400 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-[0_0_35px_rgba(168,85,247,0.6)] transition-transform hover:scale-105 active:scale-95">
+                자기장 탐구 랩(Lab) 입장 🧲
+            </button>
+            <p class="mt-5 text-slate-400 text-sm animate-pulse"><i class="fa-solid fa-headphones"></i> 음향 효과가 포함되어 있습니다.</p>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8">
+            <h1 class="font-cute text-4xl md:text-5xl text-white glow-red">🧲 전류가 흐르는 코일 주위의 자기장</h1>
+            <p class="text-slate-400 mt-2 font-cute text-lg">중학 과학 2 - 7.3단원 자기장 개념 및 가상 실험</p>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8 glass-panel p-2">
+            <button onclick="openTab('theory')" id="btn-theory" class="nav-btn active font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">1단계: 기본 개념 📖</button>
+            <button onclick="openTab('lab')" id="btn-lab" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">2단계: 가상 실험 🧪</button>
+            <button onclick="openTab('law')" id="btn-law" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">3단계: 규칙 정리 💡</button>
+            <button onclick="openTab('summary')" id="btn-summary" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">4단계: 확인 퀴즈 💯</button>
+            <button onclick="openTab('sts')" id="btn-sts" class="nav-btn font-cute text-sm sm:text-base py-3 px-2 rounded-xl text-slate-300">5단계: 심화 원리 🔬</button>
+        </nav>
+
+        <section id="tab-theory" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-blue-900/30 border border-blue-500/50 p-4 rounded-xl mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-circle-info text-blue-400 text-2xl animate-pulse"></i>
+                <p class="text-slate-200">개념 설명 속 <strong class="text-blue-300">점선 빈칸</strong>을 클릭해 핵심 단어를 확인하고 자기장의 기초를 다져보세요!</p>
+            </div>
+
+            <div class="mb-10">
+                <h2 class="font-cute text-3xl md:text-4xl text-red-400 flex items-center gap-3 mb-6">
+                    <i class="fa-solid fa-magnet"></i> 1. 자석 주위에는 어떤 일이 일어날까?
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Magnetic Force -->
+                    <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-600 text-center relative overflow-hidden">
+                        <div class="text-4xl text-slate-300 mb-3"><i class="fa-solid fa-arrows-turn-to-dots"></i></div>
+                        <h4 class="font-cute text-xl text-white mb-2">자기력</h4>
+                        <p class="text-slate-300 text-sm mb-3">자석과 자석 사이, 또는 자석과 쇠붙이 사이에 작용하는 <span class="concept-blank" onclick="revealBlank(this)">힘</span>입니다.</p>
+                        <div class="bg-slate-800 p-2 rounded text-xs text-slate-400">
+                            다른 극끼리는 인력(당김), 같은 극끼리는 척력(밀어냄)
+                        </div>
+                    </div>
+                    <!-- Magnetic Field -->
+                    <div class="bg-slate-900/80 p-5 rounded-xl border border-red-500/40 text-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                        <div class="text-4xl text-red-400 mb-3"><i class="fa-solid fa-globe"></i></div>
+                        <h4 class="font-cute text-xl text-red-300 mb-2">자기장</h4>
+                        <p class="text-slate-300 text-sm mb-3">자기력이 작용하는 <strong>공간</strong>입니다. 나침반 바늘의 <span class="concept-blank" onclick="revealBlank(this)">N극</span>이 가리키는 방향이 그 지점의 자기장 방향입니다.</p>
+                    </div>
+                    <!-- Magnetic Field Lines -->
+                    <div class="bg-slate-900/80 p-5 rounded-xl border border-blue-500/40 text-center">
+                        <div class="text-4xl text-blue-400 mb-3"><i class="fa-solid fa-wind"></i></div>
+                        <h4 class="font-cute text-xl text-blue-300 mb-2">자기력선</h4>
+                        <p class="text-slate-300 text-sm mb-3">보이지 않는 자기장의 모양을 선으로 나타낸 것입니다. 자석의 <span class="concept-blank" onclick="revealBlank(this)">N극</span>에서 나와 S극으로 들어갑니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab')" class="font-cute bg-blue-500 hover:bg-blue-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all hover:scale-105">
+                    기초 확인 완료! 가상 탐구실험실로 이동 🧪 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-4 text-sm sm:text-base">
+                <div id="step-nav-1" class="font-cute px-3 py-1.5 rounded-full bg-red-600 text-white font-bold border-2 border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]">1. 회로 연결</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-2" class="font-cute px-3 py-1.5 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">2. 나침반 관찰</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-3" class="font-cute px-3 py-1.5 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">3. 방향 바꾸기</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-4" class="font-cute px-3 py-1.5 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">4. 클립 매달기</div>
+                <i class="fa-solid fa-chevron-right text-slate-500 mt-2"></i>
+                <div id="step-nav-5" class="font-cute px-3 py-1.5 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700">5. 세기 바꾸기</div>
+            </div>
+
+            <!-- Virtual Lab Container -->
+            <div class="glass-panel p-6 relative">
+                <h2 class="font-cute text-2xl text-red-400 glow-red mb-2 text-center">탐구 실험: 코일 주위의 자기장과 자기력</h2>
+                <p class="text-slate-300 text-sm text-center mb-6">아래의 과정을 따라 실험장치를 조작하고 현상을 관찰해보세요.</p>
+
+                <!-- Top-Down View of the Coil, Compasses, and Circuit -->
+                <div class="w-full h-[350px] bg-slate-900 rounded-xl border border-slate-700 relative overflow-hidden flex items-center justify-center mb-6 shadow-inner">
+                    <svg id="lab-svg" width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <radialGradient id="compassBg" cx="50%" cy="50%" r="50%">
+                                <stop offset="70%" stop-color="#f8fafc"/>
+                                <stop offset="100%" stop-color="#cbd5e1"/>
+                            </radialGradient>
+                        </defs>
+
+                        <!-- Circuit Wires -->
+                        <path d="M 230 170 L 100 170 L 100 350 L 250 350" fill="none" stroke="#64748b" stroke-width="4"/>
+                        <path d="M 390 230 L 500 230 L 500 350 L 350 350" fill="none" stroke="#64748b" stroke-width="4"/>
+
+                        <!-- Current Arrows (Animated) -->
+                        <path id="flow-forward" d="M 100 250 L 100 170 L 200 170" fill="none" stroke="#ef4444" stroke-width="3" class="wire-flow" style="display:none;"/>
+                        <path id="flow-reverse" d="M 500 250 L 500 230 L 400 230" fill="none" stroke="#38bdf8" stroke-width="3" class="wire-flow" style="display:none;"/>
+
+                        <!-- Power Supply -->
+                        <g transform="translate(250, 330)">
+                            <rect width="100" height="40" rx="5" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+                            <text id="ps-left" x="20" y="27" fill="#ef4444" font-size="24" font-weight="bold">+</text>
+                            <text id="ps-right" x="70" y="25" fill="#38bdf8" font-size="28" font-weight="bold">-</text>
+                        </g>
+
+                        <!-- Switch -->
+                        <g transform="translate(150, 350)">
+                            <circle cx="0" cy="0" r="5" fill="#94a3b8"/>
+                            <circle cx="40" cy="0" r="5" fill="#94a3b8"/>
+                            <line id="switch-bar" x1="0" y1="0" x2="35" y2="-15" stroke="#cbd5e1" stroke-width="4" style="transition: transform 0.3s; transform-origin: 0 0;"/>
+                            <text x="20" y="25" fill="#cbd5e1" font-size="14" text-anchor="middle">스위치</text>
+                        </g>
+
+                        <!-- Ammeter -->
+                        <g transform="translate(450, 350)">
+                            <circle cx="0" cy="0" r="18" fill="#1e293b" stroke="#cbd5e1" stroke-width="2"/>
+                            <text x="0" y="6" fill="#cbd5e1" font-size="16" font-weight="bold" text-anchor="middle">A</text>
+                        </g>
+
+                        <!-- The Coil (Arcs indicating top-down wire loops) -->
+                        <g id="coil-arcs" stroke="#475569" stroke-width="8" fill="none" stroke-linecap="round">
+                            <path d="M 230 170 Q 200 200 230 230" />
+                            <path d="M 270 170 Q 240 200 270 230" />
+                            <path d="M 310 170 Q 280 200 310 230" />
+                            <path d="M 350 170 Q 320 200 350 230" />
+                            <path d="M 390 170 Q 360 200 390 230" />
+                        </g>
+
+                        <!-- Clip Stand (Hidden in Steps 1~3) -->
+                        <g id="clip-stand" style="opacity: 0; transition: opacity 0.5s;">
+                            <!-- Base -->
+                            <rect x="520" y="220" width="30" height="10" fill="#475569" rx="3"/>
+                            <!-- Pole -->
+                            <rect x="530" y="80" width="10" height="140" fill="#64748b"/>
+                            <!-- Arm -->
+                            <rect x="470" y="80" width="70" height="10" fill="#64748b"/>
+                            <!-- String and Clip Group -->
+                            <g id="clip-group" style="transform-origin: 480px 90px; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                <line x1="480" y1="90" x2="480" y2="190" stroke="#f8fafc" stroke-width="1.5"/>
+                                <!-- Paperclip -->
+                                <path d="M 477 190 L 483 190 L 483 205 C 483 210 477 210 477 205 L 477 193 C 477 191 480 191 480 193 L 480 202" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+                            </g>
+                        </g>
+
+                        <!-- 8 Compasses Group -->
+                        <g id="compasses"></g>
+
+                    </svg>
+                </div>
+
+                <!-- Lab Controls -->
+                <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700 text-center min-h-[180px]">
+                    
+                    <!-- Step 1 Controls -->
+                    <div id="lab-step-1">
+                        <p class="text-slate-200 mb-4 font-cute text-lg"><strong>과정 1.</strong> 코일 주위에 나침반 8개를 놓고, 그림처럼 스위치, 전류계, 전원 장치를 코일에 연결합니다.</p>
+                        <button onclick="goToLabStep(2)" class="font-cute bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg transition-colors mt-2">
+                            회로 연결 완료 (다음 과정) 👉
+                        </button>
+                    </div>
+
+                    <!-- Step 2 Controls -->
+                    <div id="lab-step-2" class="hidden">
+                        <p class="text-slate-200 mb-4 font-cute text-lg"><strong>과정 2.</strong> 스위치를 닫았을 때 나침반 바늘의 N극(빨간색)이 가리키는 방향을 관찰하세요.</p>
+                        <button onclick="toggleSwitch(true, 2)" id="btn-switch-2" class="font-cute bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg transition-colors mb-3">
+                            <i class="fa-solid fa-power-off"></i> 스위치 닫기 (전류 ON)
+                        </button>
+                        <div id="res-2" class="hidden mt-2 bg-slate-900/60 p-3 rounded-lg border border-slate-600">
+                            <p class="text-yellow-300 font-cute text-sm mb-3">관찰: 나침반 바늘들이 코일 주위를 감싸는 특정한 선 모양(자기력선)으로 배열됩니다.</p>
+                            <button onclick="goToLabStep(3)" class="font-cute bg-green-500 hover:bg-green-400 text-slate-900 px-4 py-1.5 rounded-full text-sm">과정 3으로 넘어가기 👉</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 Controls -->
+                    <div id="lab-step-3" class="hidden">
+                        <p class="text-slate-200 mb-4 font-cute text-lg"><strong>과정 3.</strong> 전원 장치의 +, - 극을 바꾸어 연결해 <strong>전류의 방향</strong>을 반대로 바꾸어 봅니다.</p>
+                        <button onclick="toggleDirection()" class="font-cute bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg transition-colors mb-4">
+                            <i class="fa-solid fa-arrows-rotate"></i> 전류 방향 반대로 바꾸기
+                        </button>
+                        
+                        <div id="quiz-3" class="hidden bg-slate-900/80 p-4 rounded-xl border border-purple-500/50">
+                            <p class="text-slate-200 mb-2 font-cute">질문) 전류의 방향이 바뀔 때 나침반 바늘이 가리키는 방향은 어떻게 달라지는가?</p>
+                            <div class="flex gap-2 justify-center mb-2">
+                                <button onclick="checkLabAnswer(3, false, this)" class="ans-btn px-4 py-1.5 rounded-lg border border-slate-500 text-slate-300 font-cute text-sm hover:bg-slate-700">그대로이다</button>
+                                <button onclick="checkLabAnswer(3, true, this)" class="ans-btn px-4 py-1.5 rounded-lg border border-slate-500 text-slate-300 font-cute text-sm hover:bg-slate-700">반대로 바뀐다</button>
+                            </div>
+                            <p id="msg-3" class="text-green-400 text-sm font-cute hidden">정답! 방향이 모두 반대가 됩니다.</p>
+                            <button id="btn-next-4" onclick="goToLabStep(4)" class="hidden font-cute mt-2 bg-green-500 text-slate-900 px-4 py-1.5 rounded-full text-sm">과정 4로 넘어가기 👉</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 Controls -->
+                    <div id="lab-step-4" class="hidden">
+                        <p class="text-slate-200 mb-4 font-cute text-lg"><strong>과정 4.</strong> 스탠드에 클립을 매달아 코일에 가까이 가져간 뒤, 스위치를 닫아 움직임을 관찰하세요.</p>
+                        <button onclick="toggleSwitch(true, 4)" id="btn-switch-4" class="font-cute bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg transition-colors mb-3">
+                            <i class="fa-solid fa-power-off"></i> 스위치 닫기 (클립 관찰)
+                        </button>
+                        <div id="res-4" class="hidden mt-2 bg-slate-900/60 p-3 rounded-lg border border-slate-600">
+                            <p class="text-yellow-300 font-cute text-sm mb-3">관찰: 클립이 자기력을 받아 코일 쪽으로 끌려옵니다.</p>
+                            <button onclick="goToLabStep(5)" class="font-cute bg-green-500 hover:bg-green-400 text-slate-900 px-4 py-1.5 rounded-full text-sm">마지막 과정 5로 넘어가기 👉</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 Controls -->
+                    <div id="lab-step-5" class="hidden">
+                        <p class="text-slate-200 mb-4 font-cute text-lg"><strong>과정 5.</strong> 전원 장치의 <strong>전류의 세기</strong>를 변화시켜 클립의 움직임을 관찰하세요.</p>
+                        <div class="flex justify-center gap-3 mb-4">
+                            <button onclick="setStrength(1)" id="btn-weak" class="font-cute bg-slate-600 text-white px-6 py-2 rounded-lg border-2 border-transparent">약한 전류</button>
+                            <button onclick="setStrength(2)" id="btn-strong" class="font-cute bg-slate-600 text-white px-6 py-2 rounded-lg border-2 border-transparent">강한 전류 ⚡</button>
+                        </div>
+                        
+                        <div id="quiz-5" class="hidden bg-slate-900/80 p-4 rounded-xl border border-orange-500/50">
+                            <p class="text-slate-200 mb-2 font-cute">질문) 전류의 세기에 따라 클립이 움직이는 정도는 어떻게 달라지는가?</p>
+                            <div class="flex gap-2 justify-center mb-2">
+                                <button onclick="checkLabAnswer(5, false, this)" class="ans-btn px-4 py-1.5 rounded-lg border border-slate-500 text-slate-300 font-cute text-sm hover:bg-slate-700">일정하다</button>
+                                <button onclick="checkLabAnswer(5, true, this)" class="ans-btn px-4 py-1.5 rounded-lg border border-slate-500 text-slate-300 font-cute text-sm hover:bg-slate-700">전류가 셀수록 많이 끌려온다</button>
+                            </div>
+                            <p id="msg-5" class="text-green-400 text-sm font-cute hidden">정답! 자기력이 더 강해집니다.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button id="btn-to-law" onclick="openTab('law')" class="font-cute bg-red-500 hover:bg-red-400 text-slate-900 text-xl py-3 px-8 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-all hover:scale-105 hidden">
+                    실험 완료! 3단계 규칙 정리로 이동 👉
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-law" class="tab-content hidden space-y-8 glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-4xl text-white text-center mb-6">💡 코일 주위의 자기장, 오른손으로 찾아라!</h2>
+            
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-6 md:p-8 rounded-2xl border border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] flex flex-col md:flex-row gap-8 items-center">
+                
+                <!-- Hand Illustration Image -->
+                <div class="w-full md:w-1/2 flex justify-center">
+                    <img src="./images/ampere.jpg" alt="오른손 법칙" class="w-64 md:w-72 h-auto object-contain drop-shadow-xl">
+                </div>
+
+                <!-- Text Explanation -->
+                <div class="w-full md:w-1/2 space-y-5">
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700">
+                        <h3 class="font-cute text-2xl text-blue-300 mb-3"><i class="fa-solid fa-hand"></i> 오른손 법칙</h3>
+                        <p class="text-slate-200 text-lg leading-relaxed">
+                            오른손의 <strong>네 손가락</strong>을 코일에 흐르는 <strong>전류의 방향</strong>으로 감아쥘 때, <br>
+                            <strong>엄지손가락</strong>이 가리키는 방향이 코일 내부의 <strong>자기장 방향(N극)</strong>이 됩니다.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700 mt-4">
+                        <h3 class="font-cute text-2xl text-red-300 mb-3"><i class="fa-solid fa-dumbbell"></i> 자기장을 세게 하려면?</h3>
+                        <ul class="text-slate-200 text-base space-y-2 list-disc list-inside">
+                            <li>코일에 흐르는 <strong>전류의 세기</strong>를 세게 한다.</li>
+                            <li>코일을 <strong>더 많이(촘촘하게)</strong> 감는다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusion added here -->
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-yellow-500/50 mt-8 shadow-[0_0_20px_rgba(234,179,8,0.15)]">
+                <h3 class="font-cute text-2xl text-yellow-400 mb-4"><i class="fa-solid fa-lightbulb"></i> 실험 결론 도출</h3>
+                <div class="space-y-4">
+                    <p class="text-slate-200 text-lg">
+                        <span class="text-yellow-300 font-bold mr-2">결론 1.</span> 코일에 흐르는 <strong>전류의 방향</strong>을 바꾸었을 때 나침반 바늘의 방향이 변하는 것으로 보아, 전류의 방향이 바뀌면 자기장의 방향도 <span class="concept-blank" onclick="revealBlank(this)">반대로 바뀐다</span>는 것을 알 수 있습니다.
+                    </p>
+                    <p class="text-slate-200 text-lg">
+                        <span class="text-yellow-300 font-bold mr-2">결론 2.</span> 코일에 흐르는 <strong>전류의 세기</strong>가 셀수록 클립이 더 많이 끌려오는 것으로 보아, 전류의 세기가 셀수록 코일 주위의 자기장이 <span class="concept-blank" onclick="revealBlank(this)">강해진다</span>는 것을 알 수 있습니다.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button onclick="openTab('summary')" class="font-cute bg-green-500 hover:bg-green-400 text-slate-900 text-2xl py-3.5 px-10 rounded-full shadow-[0_0_25px_rgba(34,197,94,0.5)] transition-all hover:scale-105">
+                    핵심 확인 퀴즈 풀기 💯 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-summary" class="tab-content hidden glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-3xl md:text-4xl text-green-400 glow-green text-center mb-8">💯 핵심 개념 확인 퀴즈</h2>
+            
+            <div class="space-y-6 max-w-3xl mx-auto text-lg md:text-xl text-slate-200 leading-loose">
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <p>
+                        1. 자기장의 방향은 나침반 바늘의 <input type="text" id="q1" class="q-box" placeholder="? 극" autocomplete="off"> 이 가리키는 방향과 같다.
+                    </p>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <p>
+                        2. 코일에 흐르는 전류의 방향이 바뀌면, 코일 주위에 생기는 자기장의 방향도 반대로 <input type="text" id="q2" class="q-box" placeholder="???" autocomplete="off">.
+                    </p>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <p>
+                        3. 코일 주위의 자기장 방향을 찾을 때는 <input type="text" id="q3" class="q-box" placeholder="? 슨" autocomplete="off"> 의 네 손가락을 전류 방향으로 감아쥘 때 엄지손가락이 가리키는 방향으로 찾는다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="checkQuiz()" class="font-cute bg-green-500 hover:bg-green-400 text-slate-900 text-xl py-3 px-8 rounded-full shadow-[0_0_20px_rgba(52,211,153,0.5)]">
+                    정답 확인하기 ✔️
+                </button>
+                <p id="quiz-msg" class="mt-4 text-xl font-cute font-bold"></p>
+                
+                <button id="btn-next-sts" onclick="openTab('sts')" class="font-cute mt-6 hidden bg-purple-500 hover:bg-purple-400 text-white text-xl py-3 px-8 rounded-full shadow-[0_0_20px_rgba(168,85,247,0.5)] mx-auto animate-bounce">
+                    5단계: 심화 원리로 넘어가기 🚀
+                </button>
+            </div>
+        </section>
+
+        <section id="tab-sts" class="tab-content hidden glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-4xl text-purple-400 glow-purple text-center mb-6">🔬 심화: 자석은 왜 자석일까? (영구 자석의 비밀)</h2>
+            <p class="text-center text-slate-300 mb-8">1학기 때 배운 <strong>원자</strong> 모형을 떠올려봅시다. 원자 안에도 작은 코일이 숨어있답니다!</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-10">
+                
+                <!-- Atom Animation SVG -->
+                <div class="bg-slate-900 rounded-2xl p-6 border border-purple-500/30 flex justify-center items-center min-h-[300px]">
+                    <svg viewBox="0 0 200 200" width="200" height="200" class="overflow-visible">
+                        <!-- Orbit path -->
+                        <ellipse cx="100" cy="100" rx="60" ry="20" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="4 4" />
+                        <!-- Nucleus -->
+                        <circle cx="100" cy="100" r="15" fill="#ef4444" />
+                        <text x="100" y="105" fill="white" font-size="12" text-anchor="middle" font-weight="bold">+</text>
+                        <!-- Electron Wrapper -->
+                        <g class="electron" transform-origin="100 100">
+                            <circle cx="100" cy="100" r="8" fill="#38bdf8" />
+                            <text x="100" y="103" fill="white" font-size="8" text-anchor="middle" font-weight="bold">-</text>
+                            <!-- Spin indicator -->
+                            <g class="electron-spin" transform-origin="100 100">
+                                <path d="M 90 100 A 10 10 0 0 1 110 100" fill="none" stroke="#facc15" stroke-width="1.5" />
+                                <polygon points="110,100 108,97 112,97" fill="#facc15" />
+                            </g>
+                            <path d="M 100 90 L 100 70" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.8"/>
+                            <polygon points="100,65 97,72 103,72" fill="#ef4444" opacity="0.8"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Explanation -->
+                <div class="space-y-4">
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-600">
+                        <h4 class="font-cute text-xl text-yellow-300 mb-2">1. 전자의 운동 = 작은 전류</h4>
+                        <p class="text-slate-200 text-sm">
+                            원자 핵 주위를 도는 전자의 <span class="concept-blank" onclick="revealBlank(this)">공전(오비탈, orbital)</span>과 전자 스스로 도는 <span class="concept-blank" onclick="revealBlank(this)">자전(스핀, spin)</span>은 전하를 띤 입자의 이동입니다. 즉, <strong>원형 코일에 전류가 흐르는 것</strong>과 같습니다!
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-600">
+                        <h4 class="font-cute text-xl text-red-300 mb-2">2. 원자는 아주 작은 자석</h4>
+                        <p class="text-slate-200 text-sm">
+                            전자의 운동 때문에 <strong>원자 하나하나가 N극과 S극을 가진 미세한 자석(자기 모멘트)</strong>이 됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 p-6 rounded-2xl border border-purple-400 mb-10 shadow-[0_0_20px_rgba(192,132,252,0.15)]">
+                <h4 class="font-cute text-2xl text-purple-300 mb-3">3. 온도가 자석을 지배한다? (퀴리 온도 실험)</h4>
+                <p class="text-slate-200 text-base mb-6">
+                    철이나 <strong>가돌리늄(Gd, 64번)</strong> 같은 특정 물질은 원자 자석들이 한 방향으로 나란히 정렬하면 강력한 영구 자석(강자성)이 됩니다. 하지만 온도가 일정 수준 이상으로 올라가면 열에너지에 의해 흩어지며 자석의 성질을 잃어버리는데(상자성), 이 온도를 <strong>'퀴리 온도'</strong>라고 합니다. 가돌리늄은 퀴리 온도가 상온(약 20°C)입니다. <strong>불과 얼음을 드래그하여 가돌리늄에 갖다 대보세요!</strong>
+                </p>
+                
+                <div class="flex flex-col md:flex-row justify-center items-center gap-8 bg-slate-950 p-6 rounded-xl">
+                    <div class="text-center relative">
+                        <p class="text-slate-400 text-sm mb-3">아이템을 드래그하세요</p>
+                        <div class="flex justify-center gap-6 mb-6 h-12">
+                            <div id="item-fire" class="draggable text-5xl drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">🔥</div>
+                            <div id="item-ice" class="draggable text-5xl drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]">🧊</div>
+                        </div>
+                        <div id="gd-box" class="dropzone w-36 h-36 bg-slate-700 rounded-2xl flex flex-col items-center justify-center text-white relative overflow-hidden mx-auto shadow-inner">
+                            <div id="gd-bg" class="absolute inset-0 bg-gradient-to-br from-slate-600 to-slate-800 transition-colors duration-700"></div>
+                            <span class="z-10 font-bold text-4xl mb-1 text-slate-100">Gd</span>
+                            <span class="z-10 text-sm bg-black/40 px-3 py-1 rounded-full font-cute" id="gd-temp-text">현재 온도: 20°C</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <p class="text-slate-300 font-cute mb-2 text-lg">내부 자기 모멘트 (스핀 배열)</p>
+                        <canvas id="spin-canvas" width="220" height="220" class="bg-slate-800 rounded-xl border-2 border-slate-600 shadow-lg"></canvas>
+                        <p id="spin-status" class="text-yellow-400 font-cute mt-3 text-lg bg-yellow-400/10 px-4 py-1 rounded-full">상자성 (뒤죽박죽 상태)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                <h3 class="font-cute text-2xl text-red-400 mb-4 text-center"><i class="fa-solid fa-magnet"></i> 영구 자석 핵심 원소</h3>
+                
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-red-500/30 mb-6">
+                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                        <strong class="text-red-400">란타넘족(희토류) 원소</strong>들은 4f 전자 껍질에 전자가 부분적으로 채워져 있어 매우 강한 <span class="concept-blank" onclick="revealBlank(this)">자기 모멘트(자석의 힘)</span>를 가집니다. 이 원소들을 철(Fe)이나 코발트(Co)와 결합하면 고온에 강하고 자성이 쉽게 흩어지지 않는 강력한 <span class="concept-blank" onclick="revealBlank(this)">영구 자석</span>을 만들 수 있어 현대 첨단 산업의 필수 재료가 됩니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <button class="el-btn" onclick="openElementModal('Nd')">Nd <br><span class="text-sm font-normal">네오디뮴 (60)</span></button>
+                    <button class="el-btn" onclick="openElementModal('Sm')">Sm <br><span class="text-sm font-normal">사마륨 (62)</span></button>
+                    <button class="el-btn" onclick="openElementModal('Tb')">Tb <br><span class="text-sm font-normal">터븀 (65)</span></button>
+                    <button class="el-btn" onclick="openElementModal('Dy')">Dy <br><span class="text-sm font-normal">디스프로슘 (66)</span></button>
+                </div>
+
+                <h3 class="font-cute text-2xl text-blue-400 mb-4 text-center"><i class="fa-solid fa-microchip"></i> 양자 자석 핵심 원소</h3>
+                
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-blue-500/30 mb-6">
+                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                        <strong class="text-blue-400">양자 자석(Quantum Magnet)</strong>은 원자 하나 또는 몇 개의 미세한 스핀을 조작하여 정보를 저장하거나 연산하는 차세대 자기 기술입니다. 란타넘족 원소들은 특유의 복잡한 전자 배치 덕분에 외부 환경의 간섭을 덜 받고, 0과 1이 중첩되어 공존하는 <span class="concept-blank" onclick="revealBlank(this)">양자 상태(큐비트)</span>를 안정적으로 유지할 수 있어 양자 컴퓨터의 핵심 재료로 주목받고 있습니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 justify-center">
+                    <div class="hidden md:block"></div>
+                    <button class="el-btn !border-blue-400 hover:!bg-blue-500 hover:!shadow-[0_0_15px_#3b82f6]" onclick="openElementModal('Ho')">Ho <br><span class="text-sm font-normal">홀뮴 (67)</span></button>
+                    <button class="el-btn !border-blue-400 hover:!bg-blue-500 hover:!shadow-[0_0_15px_#3b82f6]" onclick="openElementModal('Yb')">Yb <br><span class="text-sm font-normal">이터븀 (70)</span></button>
+                    <div class="hidden md:block"></div>
+                </div>
+            </div>
+            
+        </section>
+
+        <div id="element-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeElementModal()">닫기 ✖</button>
+                <h2 id="modal-el-name" class="font-cute text-3xl text-purple-400 mb-2 border-b border-purple-500/30 pb-3">원소명</h2>
+                
+                <div class="flex flex-col md:flex-row gap-6 mt-4">
+                    <div class="w-full md:w-5/12 flex justify-center items-center bg-slate-900 rounded-xl border border-slate-700 py-4 shadow-inner">
+                        <canvas id="bohr-canvas" width="260" height="260"></canvas>
+                    </div>
+
+                    <div class="w-full md:w-7/12 flex flex-col justify-center">
+                        <table class="info-table text-slate-200">
+                            <tr><td class="label">기호 / 번호</td><td id="modal-el-sym-num"></td></tr>
+                            <tr><td class="label">평균 원자량</td><td id="modal-el-mass"></td></tr>
+                            <tr><td class="label">전자 배치</td><td id="modal-el-config" class="font-mono text-sm"></td></tr>
+                            <tr><td class="label">자기 모멘트</td><td id="modal-el-moment" class="text-yellow-300 font-bold"></td></tr>
+                            <tr><td class="label">단위 부피당<br>자기 모멘트</td><td id="modal-el-volumetric" class="text-blue-300 font-bold text-sm"></td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-5 bg-slate-800/90 p-5 rounded-xl border border-slate-600 shadow-lg">
+                    <h4 id="modal-el-use-title" class="font-cute text-xl text-green-400 mb-3 flex items-center gap-2"><i class="fa-solid fa-lightbulb"></i> 성질과 응용 핵심 요약</h4>
+                    <p id="modal-el-use-desc" class="text-slate-300 leading-loose whitespace-pre-wrap text-[15px] mb-4"></p>
+                    
+                    <div class="w-full bg-slate-950 rounded-xl border border-slate-700 flex justify-center items-center py-4 shadow-inner overflow-hidden">
+                        <canvas id="el-anim-canvas" width="400" height="150" class="max-w-full"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 mb-4">
+            <p class="text-slate-500 font-cute text-sm">Made with 💡 by 해누리중학교 과학교사 남국현</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Synthesizers for UI sounds
+        let synth;
+        let switchSynth;
+
+        function initAudio() {
+            if (!synth) {
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -10;
+                
+                switchSynth = new Tone.MembraneSynth().toDestination();
+                switchSynth.volume.value = -15;
+            }
+        }
+
+        function playSound(type) {
+            if(!synth) return;
+            if (type === 'click') {
+                synth.triggerAttackRelease("C5", "16n");
+            } else if (type === 'success') {
+                synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n");
+            } else if (type === 'wrong') {
+                synth.triggerAttackRelease("G3", "8n");
+            } else if (type === 'switch') {
+                switchSynth.triggerAttackRelease("C2", "8n");
+            }
+        }
+
+        function startApp() {
+            initAudio();
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('app').classList.remove('hidden');
+            playSound('success');
+            initCompasses(); // Initialize lab SVG
+        }
+
+        // Tab Navigation
+        function openTab(tabName) {
+            initAudio();
+            playSound('click');
+            
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('btn-' + tabName).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Concept Blanks Reveal
+        function revealBlank(element) {
+            if (!element.classList.contains('revealed')) {
+                element.classList.add('revealed');
+                playSound('click');
+            }
+        }
+
+        // Virtual Lab Logic Variables
+        let currentLabStep = 1;
+        let isCurrentOn = false;
+        let isForward = true;
+        let currentStrength = 1; // 1: weak, 2: strong
+        
+        // Target angles for 8 compasses (0=Up, 90=Right, 180=Down, 270/-90=Left)
+        // Order matching IDs: c1(Left), c2(TopL), c3(TopC), c4(TopR), c5(Right), c6(BotR), c7(BotC), c8(BotL)
+        const anglesForward = [90, 225, 270, 315, 90, 225, 270, 315];
+        const anglesReverse = [270, 45, 90, 135, 270, 45, 90, 135];
+
+        // Generate 8 Compasses dynamically
+        function initCompasses() {
+            const coords = [
+                {id: 'c1', x: 140, y: 200}, {id: 'c2', x: 210, y: 110},
+                {id: 'c3', x: 310, y: 110}, {id: 'c4', x: 410, y: 110},
+                {id: 'c5', x: 470, y: 200}, {id: 'c6', x: 410, y: 290},
+                {id: 'c7', x: 310, y: 290}, {id: 'c8', x: 210, y: 290}
+            ];
+            const group = document.getElementById('compasses');
+            group.innerHTML = '';
+            
+            coords.forEach(c => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("transform", `translate(${c.x}, ${c.y})`);
+                
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", "0"); circle.setAttribute("cy", "0");
+                circle.setAttribute("r", "24"); circle.setAttribute("fill", "url(#compassBg)");
+                circle.setAttribute("stroke", "#94a3b8"); circle.setAttribute("stroke-width", "2");
+                
+                const needleG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                needleG.setAttribute("id", c.id);
+                needleG.setAttribute("class", "compass-needle");
+                // Random initial rotation
+                needleG.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`; 
+                
+                const nPole = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                nPole.setAttribute("points", "0,-18 -6,0 6,0"); nPole.setAttribute("fill", "#ef4444");
+                const sPole = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                sPole.setAttribute("points", "0,18 -6,0 6,0"); sPole.setAttribute("fill", "#38bdf8");
+                const pivot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                pivot.setAttribute("cx", "0"); pivot.setAttribute("cy", "0");
+                pivot.setAttribute("r", "3"); pivot.setAttribute("fill", "#334155");
+                
+                needleG.appendChild(nPole); needleG.appendChild(sPole); needleG.appendChild(pivot);
+                g.appendChild(circle); g.appendChild(needleG);
+                group.appendChild(g);
+            });
+        }
+
+        function goToLabStep(step) {
+            playSound('click');
+            currentLabStep = step;
+            
+            // Hide all steps
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`lab-step-${i}`).classList.add('hidden');
+                
+                const nav = document.getElementById(`step-nav-${i}`);
+                if(i === step) {
+                    nav.className = "font-cute px-3 py-1.5 rounded-full bg-red-600 text-white font-bold border-2 border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+                } else if(i < step) {
+                    nav.className = "font-cute px-3 py-1.5 rounded-full bg-slate-700 text-slate-300 font-bold border-2 border-slate-600";
+                } else {
+                    nav.className = "font-cute px-3 py-1.5 rounded-full bg-slate-800 text-slate-500 font-bold border-2 border-slate-700";
+                }
+            }
+            document.getElementById(`lab-step-${step}`).classList.remove('hidden');
+
+            // Reset specific step statuses
+            isCurrentOn = false;
+            updateVisuals();
+
+            if(step >= 4) {
+                document.getElementById('clip-stand').style.opacity = '1';
+            } else {
+                document.getElementById('clip-stand').style.opacity = '0';
+            }
+        }
+
+        function toggleSwitch(on, stepId) {
+            playSound('switch');
+            isCurrentOn = on;
+            updateVisuals();
+            
+            if(isCurrentOn && stepId) {
+                document.getElementById(`btn-switch-${stepId}`).classList.add('opacity-50', 'cursor-not-allowed');
+                setTimeout(() => {
+                    document.getElementById(`res-${stepId}`).classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        function toggleDirection() {
+            playSound('switch');
+            isForward = !isForward;
+            isCurrentOn = true;
+            updateVisuals();
+            setTimeout(() => {
+                document.getElementById('quiz-3').classList.remove('hidden');
+            }, 800);
+        }
+
+        function setStrength(val) {
+            playSound('switch');
+            currentStrength = val;
+            isCurrentOn = true;
+            updateVisuals();
+            
+            document.getElementById('btn-weak').classList.remove('border-green-400', 'bg-green-700');
+            document.getElementById('btn-strong').classList.remove('border-green-400', 'bg-green-700');
+            
+            if(val === 1) document.getElementById('btn-weak').classList.add('border-green-400', 'bg-green-700');
+            if(val === 2) document.getElementById('btn-strong').classList.add('border-green-400', 'bg-green-700');
+
+            setTimeout(() => {
+                document.getElementById('quiz-5').classList.remove('hidden');
+            }, 800);
+        }
+
+        function updateVisuals() {
+            const flowF = document.getElementById('flow-forward');
+            const flowR = document.getElementById('flow-reverse');
+            const switchBar = document.getElementById('switch-bar');
+            
+            if(isCurrentOn) {
+                switchBar.style.transform = 'rotate(25deg)'; // Close switch
+                
+                // Flow Arrows and Polarity
+                if(isForward) {
+                    flowF.style.display = 'block'; flowR.style.display = 'block';
+                    flowF.setAttribute('d', 'M 100 250 L 100 170 L 200 170'); flowF.setAttribute('stroke', '#ef4444');
+                    flowR.setAttribute('d', 'M 400 230 L 500 230 L 500 250'); flowR.setAttribute('stroke', '#38bdf8');
+                    document.getElementById('ps-left').textContent = '+'; document.getElementById('ps-left').setAttribute('fill', '#ef4444');
+                    document.getElementById('ps-right').textContent = '-'; document.getElementById('ps-right').setAttribute('fill', '#38bdf8');
+                } else {
+                    flowF.style.display = 'block'; flowR.style.display = 'block';
+                    flowF.setAttribute('d', 'M 200 170 L 100 170 L 100 250'); flowF.setAttribute('stroke', '#38bdf8');
+                    flowR.setAttribute('d', 'M 500 250 L 500 230 L 400 230'); flowR.setAttribute('stroke', '#ef4444');
+                    document.getElementById('ps-left').textContent = '-'; document.getElementById('ps-left').setAttribute('fill', '#38bdf8');
+                    document.getElementById('ps-right').textContent = '+'; document.getElementById('ps-right').setAttribute('fill', '#ef4444');
+                }
+                
+                // Compasses
+                const targetAngles = isForward ? anglesForward : anglesReverse;
+                for(let i=0; i<8; i++) {
+                    const needle = document.getElementById(`c${i+1}`);
+                    if(needle) needle.style.transform = `rotate(${targetAngles[i]}deg)`;
+                }
+
+                // Clip Movement (Step 4 & 5)
+                if(currentLabStep >= 4) {
+                    const clip = document.getElementById('clip-group');
+                    const angle = currentStrength === 1 ? 15 : 30; // 양수로 변경하여 왼쪽(코일 방향)으로 이동
+                    clip.style.transform = `rotate(${angle}deg)`;
+                }
+
+            } else {
+                switchBar.style.transform = 'rotate(0deg)'; // Open switch
+                flowF.style.display = 'none'; flowR.style.display = 'none';
+                
+                // Return clip to center
+                if(document.getElementById('clip-group')) {
+                    document.getElementById('clip-group').style.transform = 'rotate(0deg)';
+                }
+            }
+        }
+
+        function checkLabAnswer(step, isCorrect, btn) {
+            playSound('click');
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('bg-purple-600', 'text-white'));
+            btn.classList.add('bg-purple-600', 'text-white');
+
+            const msg = document.getElementById(`msg-${step}`);
+            msg.classList.remove('hidden');
+
+            if(isCorrect) {
+                msg.className = "text-green-400 text-sm font-cute mt-2";
+                playSound('success');
+                if(step === 3) document.getElementById('btn-next-4').classList.remove('hidden');
+                if(step === 5) document.getElementById('btn-to-law').classList.remove('hidden');
+            } else {
+                msg.textContent = "다시 관찰해보세요!";
+                msg.className = "text-red-400 text-sm font-cute mt-2";
+                playSound('wrong');
+            }
+        }
+
+        // Quiz Logic
+        function checkQuiz() {
+            const a1 = document.getElementById('q1').value.trim().replace(/\s+/g, '');
+            const a2 = document.getElementById('q2').value.trim().replace(/\s+/g, '');
+            const a3 = document.getElementById('q3').value.trim().replace(/\s+/g, '');
+            
+            let correct = 0;
+            
+            if(a1.toUpperCase() === 'N' || a1 === 'N극' || a1 === '엔') {
+                document.getElementById('q1').classList.add('correct');
+                document.getElementById('q1').classList.remove('wrong');
+                correct++;
+            } else {
+                document.getElementById('q1').classList.add('wrong');
+                document.getElementById('q1').classList.remove('correct');
+            }
+
+            if(a2 === '바뀐다' || a2 === '된다') {
+                document.getElementById('q2').classList.add('correct');
+                document.getElementById('q2').classList.remove('wrong');
+                correct++;
+            } else {
+                document.getElementById('q2').classList.add('wrong');
+                document.getElementById('q2').classList.remove('correct');
+            }
+
+            if(a3 === '오른' || a3 === '오른손') {
+                document.getElementById('q3').classList.add('correct');
+                document.getElementById('q3').classList.remove('wrong');
+                correct++;
+            } else {
+                document.getElementById('q3').classList.add('wrong');
+                document.getElementById('q3').classList.remove('correct');
+            }
+
+            const msgBox = document.getElementById('quiz-msg');
+            if(correct === 3) {
+                playSound('success');
+                msgBox.innerHTML = "<span class='text-green-400'>완벽합니다! 🎉 자기장 마스터!</span>";
+                document.getElementById('btn-next-sts').classList.remove('hidden');
+            } else {
+                playSound('wrong');
+                msgBox.innerHTML = `<span class='text-red-400'>${correct}개 맞았습니다. 오답을 수정해보세요! (힌트: N, 바뀐다, 오른)</span>`;
+            }
+        }
+
+        let spinCanvas, spinCtx;
+        let spins = [];
+        let currentGdTemp = 20; // Default 20°C (Paramagnetic threshold)
+        
+        function initSpins() {
+            spinCanvas = document.getElementById('spin-canvas');
+            if(!spinCanvas) return;
+            spinCtx = spinCanvas.getContext('2d');
+            spins = [];
+            // Create a 5x5 grid of spins
+            for(let i=0; i<5; i++) {
+                for(let j=0; j<5; j++) {
+                    spins.push({
+                        x: 30 + j * 40,
+                        y: 30 + i * 40,
+                        angle: Math.random() * Math.PI * 2,
+                        targetAngle: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            requestAnimationFrame(drawSpins);
+        }
+
+        function drawSpins() {
+            if(!spinCtx) return;
+            spinCtx.clearRect(0, 0, spinCanvas.width, spinCanvas.height);
+            
+            const isFerro = currentGdTemp < 20;
+            
+            spins.forEach(spin => {
+                if(isFerro) {
+                    // Align up (-90 degrees) with small vibration for cold
+                    spin.targetAngle = -Math.PI/2 + (Math.random() - 0.5) * 0.15;
+                } else {
+                    // Random thermal agitation for hot
+                    spin.targetAngle += (Math.random() - 0.5) * 1.5;
+                }
+                
+                // Lerp angle for smooth movement
+                spin.angle += (spin.targetAngle - spin.angle) * 0.1;
+                
+                spinCtx.save();
+                spinCtx.translate(spin.x, spin.y);
+                spinCtx.rotate(spin.angle);
+                
+                // Draw Arrow
+                spinCtx.beginPath();
+                spinCtx.moveTo(-12, 0);
+                spinCtx.lineTo(12, 0);
+                spinCtx.lineTo(4, -5);
+                spinCtx.moveTo(12, 0);
+                spinCtx.lineTo(4, 5);
+                spinCtx.strokeStyle = isFerro ? '#38bdf8' : '#facc15';
+                spinCtx.lineWidth = 3;
+                spinCtx.lineCap = 'round';
+                spinCtx.stroke();
+                spinCtx.restore();
+            });
+            
+            requestAnimationFrame(drawSpins);
+        }
+
+        function setupDrag(id, tempValue, effectColor) {
+            const el = document.getElementById(id);
+            if(!el) return;
+            const dropzone = document.getElementById('gd-box');
+            let isDragging = false;
+            let startX, startY;
+
+            const onStart = (e) => {
+                isDragging = true;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX; startY = clientY;
+                const rect = el.getBoundingClientRect();
+                el.style.position = 'fixed';
+                el.style.left = rect.left + 'px';
+                el.style.top = rect.top + 'px';
+                el.style.zIndex = '1000';
+            };
+
+            const onMove = (e) => {
+                if(!isDragging) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                el.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                const dzRect = dropzone.getBoundingClientRect();
+                if(clientX > dzRect.left && clientX < dzRect.right && clientY > dzRect.top && clientY < dzRect.bottom) {
+                    dropzone.classList.add('dragover');
+                } else {
+                    dropzone.classList.remove('dragover');
+                }
+            };
+
+            const onEnd = (e) => {
+                if(!isDragging) return;
+                isDragging = false;
+                const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                const dzRect = dropzone.getBoundingClientRect();
+                
+                if(clientX > dzRect.left && clientX < dzRect.right && clientY > dzRect.top && clientY < dzRect.bottom) {
+                    // Dropped in Gd box
+                    playSound('success');
+                    currentGdTemp = tempValue;
+                    document.getElementById('gd-temp-text').textContent = `현재 온도: ${currentGdTemp}°C`;
+                    document.getElementById('gd-bg').className = `absolute inset-0 transition-colors duration-700 ${effectColor}`;
+                    
+                    const status = document.getElementById('spin-status');
+                    if(currentGdTemp < 20) {
+                        status.textContent = "강자성 (나란히 정렬됨!)";
+                        status.className = "text-blue-400 font-cute mt-3 text-lg bg-blue-400/10 px-4 py-1 rounded-full";
+                    } else {
+                        status.textContent = "상자성 (뒤죽박죽 흩어짐)";
+                        status.className = "text-red-400 font-cute mt-3 text-lg bg-red-400/10 px-4 py-1 rounded-full";
+                    }
+                }
+                
+                dropzone.classList.remove('dragover');
+                el.style.position = 'relative';
+                el.style.left = '0';
+                el.style.top = '0';
+                el.style.transform = 'translate(0, 0)';
+                el.style.zIndex = '50';
+            };
+
+            el.addEventListener('mousedown', onStart);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onEnd);
+            el.addEventListener('touchstart', onStart, {passive: false});
+            window.addEventListener('touchmove', onMove, {passive: false});
+            window.addEventListener('touchend', onEnd);
+        }
+
+        const elementData = {
+            Nd: { name: "네오디뮴", sym: "Nd", num: 60, mass: 144.24, config: "[Xe] 4f⁴ 6s²", moment: "3.62 μB", vol: "약 2.2 μB/nm³ (강하게 붙음)", shells: [2, 8, 18, 22, 8, 2], color: "#ef4444", useTitle: "작지만 우주에서 가장 센 천하장사 자석", useDesc: "■ 원소의 성질: 철, 붕소라는 원소와 결합하면 인류가 지금까지 발견하고 만들어 낸 자석 중에서 힘이 가장 강력한 '영구자석'이 되는 대단한 성질이 있습니다.\n\n■ 쉬운 용도 풀이: 스마트폰이 '징~' 하고 울릴 때 돌아가는 미세한 진동 모터, 이어폰 속에서 작지만 엄청나게 웅장한 소리를 내뿜는 작은 스피커에 컴퓨터 하드디스크까지! 힘이 엄청나게 세기 때문에 자석 크기를 아주 작게 줄일 수 있어서, 우리가 쓰는 가전제품들을 아주 얇고 가볍게 만들 수 있게 해준 고마운 원소예요." },
+            Sm: { name: "사마륨", sym: "Sm", num: 62, mass: 150.36, config: "[Xe] 4f⁶ 6s²", moment: "0.84 μB", vol: "약 0.5 μB/nm³ (매우 약하게 반응)", shells: [2, 8, 18, 24, 8, 2], color: "#facc15", useTitle: "불가마 속에서도 자력을 잃지 않는 열혈 자석", useDesc: "■ 원소의 성질: 코발트라는 금속과 만나면 강력한 자석이 되는데, 특히 온도가 섭씨 300도 이상으로 엄청나게 뜨거워져도 힘이 전혀 약해지지 않고 버티는 대단한 열 저항 성질이 있습니다.\n\n■ 쉬운 용도 풀이: 일반적인 자석은 뜨거운 열을 받으면 자석의 힘을 잃고 그냥 돌덩이가 되어버려요. 하지만 사마륨 자석은 불가마 속에서도 자력을 유지하기 때문에, 엄청난 마찰열이 발생하는 유도 미사일의 정밀 조종 장치나 잠수함 발전기, 특수 고온 가전제품 모터 등에 핵심 부품으로 당당하게 쓰입니다." },
+            Tb: { name: "터븀", sym: "Tb", num: 65, mass: 158.93, config: "[Xe] 4f⁹ 6s²", moment: "9.72 μB", vol: "약 7.4 μB/nm³ (저온에서 초강력 상태)", shells: [2, 8, 18, 27, 8, 2], color: "#34d399", useTitle: "거대한 풍력 발전기를 지키는 든든한 방패", useDesc: "■ 원소의 성질: 다른 자석 원소들이 열을 받아서 자성을 잃고 흔들릴 때, 원자 구조를 단단하게 지탱해 주어 높은 온도에서도 자석의 힘이 깨지지 않도록 막아주는 방어력이 매우 뛰어납니다.\n\n■ 쉬운 용도 풀이: 바다나 대관령에 서 있는 거대한 해상 풍력 발전기 터빈은 엄청난 속도로 회전하여 모터가 터질 듯이 뜨거워져요. 이때 네오디뮴 자석에 터븀을 아주 살짝만 섞어주면, 자석이 열 때문에 망가지는 것을 완벽하게 막아주어 지치지 않고 친환경 에너지를 계속 만들어낼 수 있게 해준답니다." },
+            Dy: { name: "디스프로슘", sym: "Dy", num: 66, mass: 162.50, config: "[Xe] 4f¹⁰ 6s²", moment: "10.63 μB", vol: "약 8.3 μB/nm³ (저온에서 최고조 결합)", shells: [2, 8, 18, 28, 8, 2], color: "#c084fc", useTitle: "전기차 모터의 심장을 뛰게 하는 고온 스나이퍼", useDesc: "■ 원소의 성질: 터븀과 마찬가지로 영구 자석이 열에 버티는 힘(보자력)을 극도로 끌어올려주는 핵심 첨가제 역할을 합니다.\n\n■ 쉬운 용도 풀이: 쌩쌩 달리는 전기자동차 안에는 엄청난 열을 내는 강력한 모터가 들어있어요. 이 모터 속 자석이 열에 녹다운되지 않고 강력한 주행 성능을 낼 수 있도록 디스프로슘이 자석을 강철처럼 단단하게 지켜준답니다." },
+            Ho: { name: "홀뮴", sym: "Ho", num: 67, mass: 164.93, config: "[Xe] 4f¹¹ 6s²", moment: "10.6 μB", vol: "약 8.5 μB/nm³ (매우 강한 모멘트)", shells: [2, 8, 18, 29, 8, 2], color: "#38bdf8", useTitle: "가장 강력한 자기 모멘트를 가진 양자 나침반", useDesc: "■ 원소의 성질: 자연계에 존재하는 모든 원소 중 자기 모멘트(원자 자석의 세기)가 가장 큰 편에 속하여, 주변의 미세한 자기장에도 아주 민감하게 반응합니다.\n\n■ 쉬운 용도 풀이: 자석의 성질이 너무나도 강력하고 독특해서 인공 자기장을 만드는 최고급 의료용 정밀 수술 장비에 쓰이며, 최근에는 원자 하나하나에 정보를 저장하는 초미세 양자 컴퓨터 메모리의 핵심 소재로 전 세계 과학자들이 활발히 연구하고 있는 미래 원소입니다!" },
+            Yb: { name: "이터븀", sym: "Yb", num: 70, mass: 173.04, config: "[Xe] 4f¹⁴ 6s²", moment: "4.54 μB (이온 상태)", vol: "약 3.0 μB/nm³", shells: [2, 8, 18, 32, 8, 2], color: "#f472b6", useTitle: "양자 컴퓨터의 미래를 여는 양자 스핀 게이트", useDesc: "■ 원소의 성질: 4f 전자 껍질이 꽉 차 있거나 하나 빈 상태를 오가며 독특한 양자 역학적 상태를 유지하기 쉬운 성질이 있습니다.\n\n■ 쉬운 용도 풀이: 아주 차가운 진공 상태에서 이터븀 원자들을 띄워놓고 레이저를 쏘면, 양자 컴퓨터의 연산 단위인 '큐비트(Qubit)'로 완벽하게 작동합니다. 영화 속에서나 보던 초고속 양자 컴퓨터를 현실로 만들어줄 마법의 돌맹이랍니다!" }
+        };
+
+        let bohrAnimId;
+        let elAnimId;
+
+        function openElementModal(sym) {
+            playSound('click');
+            const data = elementData[sym];
+            if(!data) return;
+
+            document.getElementById('modal-el-name').textContent = `${data.name} (${data.sym})`;
+            document.getElementById('modal-el-sym-num').textContent = `${data.sym} / ${data.num}`;
+            document.getElementById('modal-el-mass').textContent = data.mass;
+            document.getElementById('modal-el-config').innerHTML = data.config.replace(/(\d+)/g, '<sup>$1</sup>').replace('<sup>4</sup>f', '4f').replace('<sup>6</sup>s', '6s'); // Basic formatting
+            document.getElementById('modal-el-moment').textContent = data.moment;
+            document.getElementById('modal-el-volumetric').textContent = data.vol;
+            document.getElementById('modal-el-use-title').innerHTML = `<i class="fa-solid fa-lightbulb"></i> ${data.useTitle}`;
+            document.getElementById('modal-el-use-desc').textContent = data.useDesc;
+
+            document.getElementById('element-modal').style.display = 'flex';
+            drawBohrModel(data);
+            startElAnim(sym);
+        }
+
+        function closeElementModal() {
+            playSound('click');
+            document.getElementById('element-modal').style.display = 'none';
+            if(bohrAnimId) cancelAnimationFrame(bohrAnimId);
+            if(elAnimId) cancelAnimationFrame(elAnimId);
+        }
+
+        function drawBohrModel(data) {
+            const canvas = document.getElementById('bohr-canvas');
+            const ctx = canvas.getContext('2d');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            
+            let time = 0;
+            
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw Nucleus
+                ctx.beginPath();
+                ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+                ctx.fillStyle = data.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = data.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 15px 'Jua'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(data.sym, cx, cy - 2);
+                ctx.font = "10px 'Jua'";
+                ctx.fillText(data.num, cx, cy + 12);
+                
+                // Draw Shells and Electrons
+                const shells = data.shells;
+                const maxRadius = Math.min(cx, cy) - 15;
+                
+                shells.forEach((electrons, index) => {
+                    const radius = 35 + (index * (maxRadius - 35) / (shells.length - 1));
+                    
+                    // Shell path
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    // Electrons
+                    const speed = 0.015 - (index * 0.0015); // Outer shells move slightly slower
+                    const angleOffset = time * speed;
+                    
+                    for(let i=0; i<electrons; i++) {
+                        const angle = angleOffset + (i * Math.PI * 2 / electrons);
+                        const ex = cx + Math.cos(angle) * radius;
+                        const ey = cy + Math.sin(angle) * radius;
+                        
+                        ctx.beginPath();
+                        ctx.arc(ex, ey, 2.5, 0, Math.PI*2);
+                        ctx.fillStyle = "#38bdf8";
+                        ctx.fill();
+                    }
+                });
+                
+                time++;
+                bohrAnimId = requestAnimationFrame(render);
+            }
+            
+            if(bohrAnimId) cancelAnimationFrame(bohrAnimId);
+            render();
+        }
+
+        function startElAnim(sym) {
+            const canvas = document.getElementById('el-anim-canvas');
+            const ctx = canvas.getContext('2d');
+            let time = 0;
+
+            function renderAnim() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                ctx.save();
+                
+                if (sym === 'Nd') {
+                    // 네오디뮴: 초강력 자기장 펄스
+                    ctx.translate(cx, cy);
+                    const pulse = Math.sin(time * 0.1) * 10;
+                    
+                    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+                    ctx.lineWidth = 2;
+                    for(let i=1; i<=3; i++) {
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 80 + i*20 + pulse, 40 + i*10 + pulse, 0, 0, Math.PI*2);
+                        ctx.stroke();
+                    }
+                    
+                    ctx.fillStyle = "#ef4444"; // N극
+                    ctx.fillRect(-40, -15, 40, 30);
+                    ctx.fillStyle = "#3b82f6"; // S극
+                    ctx.fillRect(0, -15, 40, 30);
+                    
+                    ctx.fillStyle = "#fff"; ctx.font = "bold 14px 'Jua'";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("N", -20, 0); ctx.fillText("S", 20, 0);
+                    
+                    ctx.shadowBlur = 20; ctx.shadowColor = "#ef4444";
+                    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "14px 'Jua'";
+                    ctx.fillText("초강력 영구 자석", 0, 50);
+
+                } else if (sym === 'Sm') {
+                    // 사마륨: 고온 저항 불꽃
+                    ctx.translate(cx, cy);
+                    
+                    ctx.fillStyle = "rgba(239, 68, 68, 0.6)";
+                    ctx.beginPath();
+                    for(let x = -80; x <= 80; x+=20) {
+                        const yOsc = Math.sin(time * 0.2 + x) * 15;
+                        ctx.lineTo(x, 40 + yOsc);
+                    }
+                    ctx.lineTo(80, 80); ctx.lineTo(-80, 80);
+                    ctx.fill();
+
+                    ctx.fillStyle = "#facc15";
+                    ctx.fillRect(-30, -20, 60, 40);
+                    ctx.fillStyle = "#1e293b"; ctx.font = "bold 14px 'Jua'";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("SmCo", 0, 0);
+                    
+                    ctx.fillStyle = "#fff"; ctx.shadowBlur = 10; ctx.shadowColor = "#facc15";
+                    ctx.font = "14px 'Jua'";
+                    ctx.fillText("고온에서도 자력 유지!", 0, -40);
+
+                } else if (sym === 'Tb') {
+                    // 터븀: 거대 풍력 발전기 터빈
+                    ctx.translate(cx, cy + 20);
+                    
+                    ctx.fillStyle = "#94a3b8"; // 타워
+                    ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.lineTo(12, 60); ctx.lineTo(-12, 60); ctx.fill();
+                    
+                    ctx.translate(0, 0);
+                    ctx.rotate(time * 0.05);
+                    ctx.fillStyle = "#f8fafc"; // 날개
+                    for(let i=0; i<3; i++) {
+                        ctx.rotate(Math.PI * 2 / 3);
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0); ctx.lineTo(-5, -45); ctx.lineTo(0, -50); ctx.lineTo(5, -45);
+                        ctx.fill();
+                    }
+                    ctx.fillStyle = "#34d399"; // Tb 코어
+                    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+                    
+                    ctx.restore(); ctx.save();
+                    ctx.fillStyle = "#34d399"; ctx.textAlign = "center"; ctx.font = "14px 'Jua'";
+                    ctx.fillText("내열성 강화 거대 풍력 발전 터빈", cx, 30);
+
+                } else if (sym === 'Dy') {
+                    // 디스프로슘: 전기차 모터 코어
+                    ctx.translate(cx, cy);
+                    
+                    ctx.strokeStyle = "#475569"; ctx.lineWidth = 15;
+                    ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI*2); ctx.stroke();
+                    
+                    ctx.fillStyle = "#f97316"; // 구리 코일
+                    for(let i=0; i<6; i++) {
+                        ctx.beginPath(); ctx.arc(Math.cos(i*Math.PI/3)*40, Math.sin(i*Math.PI/3)*40, 7, 0, Math.PI*2); ctx.fill();
+                    }
+                    
+                    ctx.rotate(time * 0.15); // 모터 회전
+                    ctx.fillStyle = "#c084fc"; // Dy 합금 로터
+                    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(-22, -4, 44, 8);
+                    
+                    ctx.restore(); ctx.save();
+                    ctx.fillStyle = "#c084fc"; ctx.textAlign = "center"; ctx.font = "14px 'Jua'";
+                    ctx.shadowBlur = 10; ctx.shadowColor = "#c084fc";
+                    ctx.fillText("전기차 구동 모터의 방패", cx, cy + 60);
+
+                } else if (sym === 'Ho') {
+                    // 홀뮴: 초정밀 양자 스핀 (데이터)
+                    ctx.translate(cx, cy);
+                    
+                    ctx.fillStyle = "#38bdf8"; // 원자핵
+                    ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
+                    
+                    const angle = Math.sin(time * 0.05) * Math.PI / 4 - Math.PI / 2;
+                    ctx.rotate(angle);
+                    
+                    ctx.fillStyle = "#facc15"; // 거대 스핀 벡터
+                    ctx.beginPath();
+                    ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.lineTo(5, -35); ctx.lineTo(12, -35);
+                    ctx.lineTo(0, -55); ctx.lineTo(-12, -35); ctx.lineTo(-5, -35);
+                    ctx.fill();
+                    
+                    ctx.restore(); ctx.save();
+                    
+                    ctx.fillStyle = "rgba(56, 189, 248, 0.7)"; ctx.font = "16px 'Jua'";
+                    const yPos1 = (cy - (time % 50)) - 10;
+                    const yPos2 = (cy - ((time+25) % 50)) - 10;
+                    ctx.fillText("1", cx - 40, yPos1);
+                    ctx.fillText("0", cx + 40, yPos2);
+                    
+                    ctx.fillStyle = "#38bdf8"; ctx.textAlign = "center"; ctx.font = "14px 'Jua'";
+                    ctx.fillText("세계에서 가장 작은 자석 (단일 원자 데이터 저장)", cx, cy + 50);
+
+                } else if (sym === 'Yb') {
+                    // 이터븀: 큐비트 중첩 제어 (블로흐 구면)
+                    ctx.translate(cx, cy);
+                    
+                    ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(0, 0, 35, 12, 0, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, -40); ctx.lineTo(0, 40); ctx.stroke();
+                    
+                    const qAngle = (Math.sin(time * 0.05) * Math.PI / 2) - Math.PI/2;
+                    const vx = Math.cos(qAngle) * 35;
+                    const vy = Math.sin(qAngle) * 35;
+                    
+                    ctx.strokeStyle = "#f472b6"; ctx.lineWidth = 3; // 상태 벡터
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(vx, vy); ctx.stroke();
+                    ctx.fillStyle = "#f472b6";
+                    ctx.beginPath(); ctx.arc(vx, vy, 4, 0, Math.PI*2); ctx.fill();
+                    
+                    if (time % 60 < 20) { // 레이저 타격
+                        ctx.strokeStyle = "#34d399"; ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.moveTo(-150, 0); ctx.lineTo(0, 0); ctx.stroke();
+                        ctx.shadowBlur = 10; ctx.shadowColor = "#34d399";
+                    }
+                    
+                    ctx.restore(); ctx.save();
+                    ctx.fillStyle = "#f472b6"; ctx.textAlign = "center"; ctx.font = "14px 'Jua'";
+                    ctx.fillText("양자 상태(큐비트) 중첩 레이저 제어", cx, cy + 55);
+                }
+
+                ctx.restore();
+                time++;
+                elAnimId = requestAnimationFrame(renderAnim);
+            }
+
+            if(elAnimId) cancelAnimationFrame(elAnimId);
+            renderAnim();
+        }
+
+        // Initialize drag and spins when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDrag('item-fire', 80, 'bg-red-600/40');
+            setupDrag('item-ice', -20, 'bg-blue-600/40');
+            initSpins();
+        });
+
+    </script>
+</body>
+</html>
