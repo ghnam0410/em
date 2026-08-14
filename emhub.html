@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중학교 2학년 과학 - 7. 전기와 자기</title>
+    
+    <style>
+        /* 온라인 환경에서 폰트 불러오기 (오프라인 시 기본 폰트로 대체됨) */
+        @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+
+        :root {
+            --font-title: 'Jua', sans-serif;
+            --font-text: 'Gowun Dodum', sans-serif;
+            --bg-color-main: #0a0b10;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-electric: #00e5ff;
+            --accent-magnetic: #ff007f;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color-main);
+            color: var(--text-main);
+            font-family: var(--font-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .page-header {
+            position: relative;
+            padding: 6rem 2rem 4rem 2rem;
+            text-align: center;
+            /* nanobanana 느낌의 전기/자기장 테마 패턴 배경 */
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 229, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 127, 0.15) 0%, transparent 50%),
+                linear-gradient(to bottom, rgba(10, 11, 16, 0.6) 0%, var(--bg-color-main) 100%),
+                repeating-linear-gradient(45deg, #111 0px, #111 2px, transparent 2px, transparent 15px);
+            z-index: 1;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+        }
+
+        .creator-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: #fcd34d; /* 밝은 노란색으로 강조 */
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(252, 211, 77, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .main-title {
+            font-family: var(--font-title);
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(255, 0, 127, 0.6);
+            margin-bottom: 1rem;
+            word-break: keep-all;
+        }
+
+        .sub-title {
+            font-family: var(--font-text);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: #bae6fd;
+            max-width: 800px;
+            margin: 0 auto;
+            word-break: keep-all;
+        }
+
+        .layout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        .floating-menu {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .floating-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.5rem;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--accent-electric);
+            color: var(--accent-electric);
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            text-decoration: none;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .floating-btn:hover {
+            background: var(--accent-electric);
+            color: var(--bg-color-main);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+            transform: scale(1.05) translateX(-5px);
+        }
+
+        .section-header {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            color: var(--accent-electric);
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header::before {
+            content: "⚡";
+            font-size: 1.8rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 229, 255, 0.2);
+            border-color: rgba(0, 229, 255, 0.5);
+        }
+
+        .card-image-wrap {
+            width: 100%;
+            height: 180px;
+            background: #1e293b; /* 이미지 없을 때 기본 배경 */
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover .card-image-wrap img {
+            transform: scale(1.05);
+        }
+
+        .image-fallback {
+            position: absolute;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-family: var(--font-text);
+            text-align: center;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 1rem;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+            word-break: keep-all;
+        }
+
+        .card-btn {
+            display: block;
+            text-align: center;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(255, 0, 127, 0.1));
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(255, 0, 127, 0.3));
+            border-color: rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* 모바일 반응형 처리 */
+        @media (max-width: 900px) {
+            .creator-info {
+                position: relative;
+                display: inline-block;
+                top: 0;
+                left: 0;
+                margin-bottom: 2rem;
+            }
+            .floating-menu {
+                position: static;
+                transform: none;
+                flex-direction: row;
+                justify-content: center;
+                margin: 2rem 0;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <aside class="floating-menu">
+        <a href="https://drive.google.com/drive/folders/12cADjzdN3roya8VpL-qxEh1N4ItLPOjx?usp=sharing" target="_blank" class="floating-btn">📥 학습지 다운로드</a>
+        <a href="https://scienceisjo.github.io/electricity/" target="_blank" class="floating-btn">🔗 승재T 허브 페이지</a>
+    </aside>
+
+    <header class="page-header">
+        <div class="creator-info">해누리중학교 과학교사 남국현</div>
+        <h1 class="main-title">중학교 2학년 과학<br>7. 전기와 자기</h1>
+        <p class="sub-title">세상을 이루는 물질은 왜 서로 끌어당기고, 밀치고, 밝은 빛을 낼까?</p>
+    </header>
+
+    <main class="layout-container">
+
+        <!-- ==============================================
+             섹션 00. 들어가기 전에 
+             ============================================== -->
+        <section class="module">
+            <h2 class="section-header">00. 들어가기 전에</h2>
+            <div class="card-grid">
+                
+                <!-- ▶ 반복 규칙: 새 카드를 추가하려면 이 아래 <article> 태그 전체를 복사해서 붙여넣고 내용만 바꾸세요. -->
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <!-- 이미지가 hubimage 폴더 안에 없으면 onerror가 발동하여 텍스트를 보여줍니다. -->
+                        <img src="hubimage/emhistory.png" alt="전자기학의 역사" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/emhistory.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">전자기학의 역사</h3>
+                        <p class="card-desc">과학자들이 세상을 이루는 물질을 바라보며 깨달은 짜릿한 비밀</p>
+                        <a href="emhistory.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+                <!-- ◀ 카드 1개 끝 -->
+
+            </div>
+        </section>
+
+        <!-- ==============================================
+             섹션 01. 전기의 발생 
+             ============================================== -->
+        <section class="module">
+            <h2 class="section-header">01. 전기의 발생</h2>
+            <div class="card-grid">
+                
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/electric1.png" alt="7. 1. 1. 마찰하면 생기는 전기" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/electric1.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 1. 1. 마찰하면 생기는 전기</h3>
+                        <p class="card-desc">옷을 갈아입을 때 스웨터에 머리카락이 달라붙는 까닭은 무엇일까?</p>
+                        <a href="electric1.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/electric2.png" alt="7. 1. 2. 가까이 하면 생기는 전기" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/electric2.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 1. 2. 가까이 하면 생기는 전기</h3>
+                        <p class="card-desc">마찰하지 않은 금속 공이 끌려가는 까닭은 무엇일까?</p>
+                        <a href="electric2.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- ==============================================
+             섹션 02. 전기 회로와 에너지 
+             ============================================== -->
+        <section class="module">
+            <h2 class="section-header">02. 전기 회로와 에너지</h2>
+            <div class="card-grid">
+                
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/current.png" alt="7. 2. 1. 전하의 흐름, 전류" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/current.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 2. 1. 전하의 흐름, 전류</h3>
+                        <p class="card-desc">전기 회로에서 전구에 불이 켜지는 까닭은 무엇일까?</p>
+                        <a href="current.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/ohm1.png" alt="7. 2. 2. 전류를 조절하는 전압과 저항" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/ohm1.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 2. 2. 전류를 조절하는 전압과 저항</h3>
+                        <p class="card-desc">전구의 밝기를 줄이려면 어떻게 해야 할까?</p>
+                        <a href="ohm1.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/ohm2.png" alt="7. 2. 3. 저항의 직렬연결과 병렬연결" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/ohm2.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 2. 3. 저항의 직렬연결과 병렬연결</h3>
+                        <p class="card-desc">조명 중 하나가 꺼져도 나머지 조명이 꺼지지 않는 까닭은 무엇일까?</p>
+                        <a href="ohm2.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/watt.png" alt="7. 2. 4. 전기 에너지의 전환과 소비 전력" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/watt.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 2. 4. 전기 에너지의 전환과 소비 전력</h3>
+                        <p class="card-desc">선풍기와 전기난로는 전기 에너지를 어떻게 사용할까?</p>
+                        <a href="watt.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- ==============================================
+             섹션 03. 전류의 자기 작용 
+             ============================================== -->
+        <section class="module">
+            <h2 class="section-header">03. 전류의 자기 작용</h2>
+            <div class="card-grid">
+                
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/ampere.png" alt="7. 3. 1. 전류가 흐르는 코일 주위의 자기장" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/ampere.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 3. 1. 전류가 흐르는 코일 주위의 자기장</h3>
+                        <p class="card-desc">코일은 어떻게 자석을 끌어당기는 것일까?</p>
+                        <a href="ampere.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image-wrap">
+                        <img src="hubimage/lorentz.png" alt="7. 3. 2. 전류가 흐르는 코일이 받는 힘" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="image-fallback" style="display: none;">📷 hubimage/lorentz.png<br>이미지 준비중</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">7. 3. 2. 전류가 흐르는 코일이 받는 힘</h3>
+                        <p class="card-desc">전동기가 있으면 언덕길을 수월하게 올라갈 수 있는 까닭은 무엇일까?</p>
+                        <a href="lorentz.html" class="card-btn">열기</a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        
+        // 캔버스 사이즈 조정
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 파티클 (전자 및 스핀) 배열
+        const electrons = [];
+        const spins = [];
+        let lightningFlash = 0;
+
+        // 전자 객체 클래스 (위에서 아래로 떨어짐)
+        class Electron {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * height; // 초기 화면 전체에 분포
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = -10;
+                this.size = Math.random() * 2 + 1;
+                this.speed = Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height) this.reset();
+            }
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 229, 255, ${this.opacity})`; // 전기적인 시안색(Cyan)
+                ctx.fill();
+                // 빛나는 효과
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#00e5ff";
+                ctx.shadowBlur = 0; // 초기화
+            }
+        }
+
+        // 스핀 객체 클래스 (파도치듯 좌우로 흐름)
+        class Spin {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * width;
+            }
+            reset() {
+                this.x = -30;
+                this.y = Math.random() * height;
+                this.baseY = this.y;
+                this.speedX = Math.random() * 1.5 + 0.5;
+                this.amplitude = Math.random() * 30 + 10; // 파도 진폭
+                this.frequency = Math.random() * 0.02 + 0.01;
+                this.angle = Math.random() * Math.PI * 2;
+                this.type = Math.random() > 0.5 ? '↑' : '↓'; // 스핀 업/다운
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.size = Math.floor(Math.random() * 10 + 10);
+            }
+            update() {
+                this.x += this.speedX;
+                this.angle += this.frequency;
+                this.y = this.baseY + Math.sin(this.angle) * this.amplitude;
+                if (this.x > width + 30) this.reset();
+            }
+            draw(ctx) {
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillStyle = `rgba(255, 0, 127, ${this.opacity})`; // 자기적인 마젠타색
+                ctx.fillText(this.type, this.x, this.y);
+            }
+        }
+
+        // 파티클 생성
+        for (let i = 0; i < 50; i++) electrons.push(new Electron());
+        for (let i = 0; i < 20; i++) spins.push(new Spin());
+
+        // 애니메이션 루프
+        function animate() {
+            // 잔상 효과를 위한 불투명 배경 덧칠
+            ctx.fillStyle = 'rgba(10, 11, 16, 0.4)';
+            ctx.fillRect(0, 0, width, height);
+
+            // 무작위 번개 효과
+            if (Math.random() < 0.003) { 
+                lightningFlash = 1.0; 
+            }
+            
+            if (lightningFlash > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash * 0.15})`;
+                ctx.fillRect(0, 0, width, height);
+                lightningFlash -= 0.05;
+            }
+
+            // 파티클 업데이트 및 그리기
+            electrons.forEach(e => {
+                e.update();
+                e.draw(ctx);
+            });
+
+            spins.forEach(s => {
+                s.update();
+                s.draw(ctx);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
