@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전자기학의 역사 - 전기와 자기 이야기</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+
+        :root {
+            --font-title: 'Jua', sans-serif;
+            --font-text: 'Gowun Dodum', sans-serif;
+            --bg-color-main: #0a0b10;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-electric: #00e5ff;
+            --accent-magnetic: #ff007f;
+            --accent-highlight: #fcd34d;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color-main);
+            color: var(--text-main);
+            font-family: var(--font-text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .page-header {
+            position: relative;
+            padding: 5rem 2rem 4rem 2rem;
+            text-align: center;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 229, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 127, 0.15) 0%, transparent 50%),
+                linear-gradient(to bottom, rgba(10, 11, 16, 0.8) 0%, var(--bg-color-main) 100%),
+                repeating-linear-gradient(45deg, #111 0px, #111 2px, transparent 2px, transparent 15px);
+            z-index: 1;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .main-title {
+            font-family: var(--font-title);
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(255, 0, 127, 0.6);
+            margin-bottom: 1rem;
+            word-break: keep-all;
+        }
+
+        .sub-title {
+            font-family: var(--font-text);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: #bae6fd;
+            max-width: 800px;
+            margin: 0 auto;
+            word-break: keep-all;
+            padding: 0 1rem;
+        }
+
+        .landing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .start-btn {
+            padding: 1rem 3rem;
+            font-family: var(--font-title);
+            font-size: 2rem;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(255, 0, 127, 0.2));
+            border: 2px solid var(--accent-electric);
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 229, 255, 0.3);
+            margin-top: 2rem;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.4), rgba(255, 0, 127, 0.4));
+            box-shadow: 0 15px 40px rgba(0, 229, 255, 0.6);
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: none; /* Shows after start */
+        }
+
+        .toc-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.8rem 1.5rem;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--accent-highlight);
+            color: var(--accent-highlight);
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .toc-btn:hover {
+            background: var(--accent-highlight);
+            color: var(--bg-color-main);
+        }
+
+        .slider-container {
+            display: none; /* Shows after start */
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        .slide {
+            display: none;
+            flex-direction: row;
+            gap: 3rem;
+            animation: fadeIn 0.5s ease-out forwards;
+            height: 100%;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-meta {
+            font-size: 1.1rem;
+            color: var(--accent-highlight);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-title);
+            letter-spacing: 1px;
+        }
+
+        .slide-title {
+            font-family: var(--font-title);
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            color: #fff;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            word-break: keep-all;
+        }
+
+        .slide-quote {
+            position: relative;
+            padding: 1.5rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--accent-electric);
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            font-style: italic;
+        }
+        
+        .slide-quote b {
+            color: var(--accent-electric);
+            font-weight: normal;
+        }
+
+        .slide-text {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            color: #e2e8f0;
+            margin-bottom: 2rem;
+            word-break: keep-all;
+            line-height: 1.8;
+        }
+
+        .slide-summary {
+            margin-top: auto;
+            padding: 1rem;
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            border-radius: 12px;
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .slide-visual {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            min-height: 400px;
+            backdrop-filter: blur(5px);
+        }
+
+        .slide-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+
+        .visual-placeholder {
+            position: absolute;
+            text-align: center;
+            color: var(--text-muted);
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            padding: 2rem;
+        }
+
+        .hl-elec {
+            color: var(--accent-electric);
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .hl-mag {
+            color: var(--accent-magnetic);
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
+        }
+        
+        .hl-name {
+            color: var(--accent-highlight);
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            padding-bottom: 2rem;
+        }
+
+        .ctrl-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ctrl-btn:hover:not(:disabled) {
+            background: var(--accent-electric);
+            color: var(--bg-color-main);
+            border-color: var(--accent-electric);
+        }
+
+        .ctrl-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-indicator {
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--bg-color-main);
+            border: 1px solid var(--accent-electric);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.2);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-family: var(--font-title);
+            color: #fff;
+            font-size: 2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--accent-magnetic);
+        }
+
+        .toc-grid {
+            padding: 2rem;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .toc-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toc-item:hover {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--accent-electric);
+            transform: translateY(-2px);
+        }
+
+        .toc-item .toc-num {
+            font-family: var(--font-title);
+            color: var(--accent-highlight);
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .toc-item .toc-title {
+            font-family: var(--font-text);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 900px) {
+            .slide {
+                flex-direction: column;
+            }
+            .slide-visual {
+                min-height: 250px;
+                order: -1; /* Image on top for mobile */
+            }
+            .page-header {
+                padding: 3rem 1rem 2rem 1rem;
+            }
+            .main-title {
+                margin-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header / Landing -->
+    <header class="page-header" id="pageHeader">
+        <h1 class="main-title">전자기학의 역사</h1>
+        <p class="sub-title">과학자들이 세상을 이루는 물질을 바라보며 깨달은 짜릿한 비밀</p>
+    </header>
+
+    <!-- Landing Container -->
+    <main class="landing-container" id="landingContainer">
+        <button class="start-btn" onclick="startExperience()">탐험 시작하기</button>
+    </main>
+
+    <!-- Top Navigation (hidden initially) -->
+    <nav class="top-nav" id="topNav">
+        <button class="toc-btn" onclick="openModal()">
+            <span>☰</span> 목차
+        </button>
+    </nav>
+
+    <!-- Slider Container (hidden initially) -->
+    <div class="slider-container" id="sliderContainer">
+        <div id="slideRenderArea">
+            <!-- Slides will be injected here by JS -->
+        </div>
+
+        <!-- Controls -->
+        <div class="controls" id="controlsContainer">
+            <button class="ctrl-btn" id="prevBtn" onclick="prevSlide()">❮ 이전</button>
+            <div class="progress-indicator" id="progressIndicator">1 / 23</div>
+            <button class="ctrl-btn" id="nextBtn" onclick="nextSlide()">다음 ❯</button>
+        </div>
+    </div>
+
+    <!-- TOC Modal -->
+    <div class="modal-overlay" id="tocModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>전기와 자기 이야기보따리</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="toc-grid" id="tocGrid">
+                <!-- TOC Items injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 23 Slides Data Structure
+        const slidesData = [
+            {
+                meta: "기원전 600년경 · 보석의 비밀",
+                title: "호박과 신비한 돌멩이는 왜 선을 그었을까?",
+                quote: "비비면 먼지를 끌어당기는 노란 보석과, 철을 끌어당기는 검은 돌멩이는 같은 힘일까?",
+                text: `투명하고 아름다운 보석인 호박(Amber)을 헝겊으로 쓱쓱 비비면 깃털이나 먼지가 달라붙었어요. 옛 그리스 사람들은 이 신기한 현상을 보고 호박을 뜻하는 단어인 '엘렉트론'에서 이름을 따와 <span class="hl-elec">전기(Electricity)</span>라고 불렀답니다.<br><br>한편, 옛 마그네시아 지역에서는 철을 착 끌어당기는 신기한 <span class="hl-mag">자철석</span>(Fe₃O₄)이라는 돌멩이가 발견되었어요. 지역 이름을 따서 이를 <span class="hl-mag">자기(Magnetism)</span>라고 불렀지요. 처음 수천 년 동안 사람들은 전기와 자기가 완전히 다른 별개의 힘이라고 생각했답니다.`,
+                summary: "호박의 비비기에서 전기, 자철석의 끌림에서 자기가 태어났습니다",
+                image: "history/01.png"
+            },
+            {
+                meta: "1752년 · 하늘의 번개 / 프랭클린: 음전하와 양전하의 명명",
+                title: "번개도 우리가 만지는 전기가 맞을까?",
+                quote: "먹구름 속에서 쿵쾅거리는 저 번개도 비단옷을 문지를 때 생기는 전기와 같은 것일까?",
+                text: `<span class="hl-name">벤저민 프랭클린</span>(B. Franklin, 1706~1790)은 거센 빗속에서 연을 날려 하늘의 번개를 유리병에 모으는 위험천만한 실험을 했어요. 그리고 번개가 우리가 만드는 전기와 똑같다는 것을 증명했지요.<br><br>그는 전기를 띤 상태를 설명하기 위해 유리를 문질렀을 때 생기는 전기를 <span class="hl-elec">플러스(+) 양전하</span>, 고무를 문질렀을 때 생기는 전기를 <span class="hl-mag">마이너스(-) 음전하</span>라고 처음 이름 지었어요. 전기를 띤 기본 알갱이인 전하에 더하기와 빼기 기호를 붙인 덕분에 전기의 이동을 쉽게 계산할 수 있게 되었어요.`,
+                summary: "번개도 전기였습니다 — 플러스와 마이너스가 전기의 흐름을 만들어요",
+                image: "history/02.png"
+            },
+            {
+                meta: "1820년 · 우연한 발견 / 외르스테드 & 앙페르: 전류에 의한 자기장",
+                title: "전깃줄 곁에서 나침반 바늘이 왜 춤을 출까?",
+                quote: "실험실 전선에 전기를 흘렸을 뿐인데, 옆에 있던 나침반 바늘이 왜 돌아가지?",
+                text: `전기와 자기는 완전히 남남이라고 믿었던 시절, <span class="hl-name">외르스테드</span>(H. C. Ørsted, 1777~1851)는 전류가 흐르는 전선 근처에서 나침반 바늘이 스르륵 움직이는 것을 우연히 발견했어요. <span class="hl-elec">전기</span>가 <span class="hl-mag">자기</span>를 만들어낸 역사적인 순간이었지요!<br><br>이 소식을 들은 <span class="hl-name">앙페르</span>(A. M. Ampère, 1775~1836)는 오른손을 쥐는 모양으로 전깃줄 주변에 동그랗게 생기는 자기장의 방향과 세기를 계산하는 법칙을 만들었어요. 전기가 흐르면 눈에 보이지 않는 자석의 힘이 미치는 공간인 자기장이 주변에 소용돌이친다는 사실을 밝혀낸 것이랍니다.`,
+                summary: "전기가 흐르면 그 주변은 눈에 보이지 않는 자석 공간이 됩니다",
+                image: "history/03.png"
+            },
+            {
+                meta: "1831년 · 역발상 / 패러데이: 전자기 유도",
+                title: "그럼 반대로도 될까?",
+                quote: "전기가 자기를 만든다면, 자기로 전기를 만들 수도 있지 않을까?",
+                text: `<span class="hl-name">마이클 패러데이</span>(M. Faraday, 1791~1867)는 코일 속에 자석을 넣고 움직였더니 정말로 <span class="hl-elec">전기</span>가 흘렀습니다. 단, 조건이 하나 있었어요. 가만히 두면 아무 일도 없습니다. 반드시 <b>움직여야</b> 전기가 생겨요.<br><br>이것이 <span class="hl-mag">자기</span>가 <span class="hl-elec">전기</span>를 만드는 현상입니다. 그리고 이 발견 하나로 오늘날 모든 발전소가 돌아갑니다. 화력이든 원자력이든 풍력이든, 결국 하는 일은 똑같아요. 자석을 돌리는 것.`,
+                summary: "멈추면 꺼집니다 — 변화가 있어야 전기가 생깁니다",
+                image: "history/04.png"
+            },
+            {
+                meta: "1865년 · 공식의 마술 / 맥스웰: 맥스웰 방정식과 전자기파",
+                title: "전기와 자기, 그리고 빛은 하나일까?",
+                quote: "전기장의 변화가 자기장을 만들고, 자기장의 변화가 다시 전기장을 만든다면 이 파동의 속도는 얼마일까?",
+                text: `<span class="hl-name">제임스 클러크 맥스웰</span>(J. C. Maxwell, 1831~1879)은 앞선 과학자들이 찾아낸 전기와 자기의 규칙들을 단 4개의 정교한 수학 공식으로 합쳤어요. 그리고 <span class="hl-elec">전기장</span>과 <span class="hl-mag">자기장</span>이 서로를 밀어주며 물결처럼 공간을 퍼져나가는 전자기파의 존재를 계산해 냈지요.<br><br>더 놀라운 점은 그 전자기파의 속도를 계산해 보니 초속 30만km로 우리가 보는 <b>빛의 속도</b>와 정확히 일치했다는 사실이에요. 우리가 매일 보는 햇빛과 조명도 사실은 전기와 자기가 어우러져 날아오는 파동이라는 것이 밝혀졌답니다.`,
+                summary: "빛의 정체는 전기와 자기가 만들어낸 전자기 파동이었습니다",
+                image: "history/05.png"
+            },
+            {
+                meta: "1895년 · 불타는 자석 / 퀴리: 퀴리 온도의 발견",
+                title: "자석도 불에 태우면 힘을 잃을까?",
+                quote: "철을 자석에 대면 착 붙지만, 뜨겁게 달구어도 여전히 잘 붙을까?",
+                text: `<span class="hl-name">피에르 퀴리</span>(P. Curie, 1859~1906, 1903년 노벨상)는 철(Fe)이나 니켈(Ni)처럼 자석에 매우 잘 붙는 강자성체 물질들을 난로처럼 뜨겁게 달구며 관찰했어요. 그러자 특정 온도에 도달하자마자 자석 바늘이 툭 떨어지며 평범한 금속으로 변해버렸답니다.<br><br>물질 내부에는 원자 크기의 아주 작은 자석 알갱이들이 한 방향으로 줄을 서 있는데, 뜨거운 <b>열에너지</b>가 더해지면 이 알갱이들이 어지럽게 흔들리며 정렬이 무너지기 때문이에요. 자성이 사라지는 이 한계 온도를 <b>퀴리 온도</b>라고 불러요.`,
+                summary: "뜨거운 열은 물질 내부 원자 자석들의 질서를 무너뜨립니다",
+                image: "history/06.png"
+            },
+            {
+                meta: "1900년 · 전자의 바다 / 드루데: 드루데 모형",
+                title: "금속 안에서 전자는 어떻게 움직일까?",
+                quote: "전선에 전기를 걸어주면, 그 내부에서 전자들은 어떤 모습으로 달리고 있을까?",
+                text: `<span class="hl-name">파울 드루데</span>(P. Drude, 1863~1906)는 금속 내부를 이해하기 쉽게 탁구장처럼 비유했어요. 금속 안에는 원자들이 정갈하게 기둥처럼 서 있고, 마이너스 전하를 띤 <span class="hl-elec">전자</span>들이 마치 기체 분자나 탁구공처럼 그 사이를 쿵쿵 부딪히며 자유롭게 날아다닌다고 보았지요.<br><br>평소에는 전자들이 아무 방향으로나 정신없이 튕겨 다니지만, 건전지를 연결해 전압을 걸어주면 전자들이 한쪽 방향으로 밀려가며 전류가 흐른다고 설명했어요. 미시 세계의 전기를 직관적으로 이해하게 해 준 훌륭한 비유였어요.`,
+                summary: "금속 내부의 전자는 원자 기둥 사이를 튀어 다니는 탁구공과 같습니다",
+                image: "history/07.png"
+            },
+            {
+                meta: "1927년 · 양자의 질서 / 조머펠트: 금속의 자유전자",
+                title: "전자들이 무작정 부딪히기만 할까?",
+                quote: "드루데의 탁구공 모형은 쉬운 데 왜 전기가 통할 때 생기는 열의 양을 정확히 맞추지 못할까?",
+                text: `<span class="hl-name">아르놀트 조머펠트</span>(A. Sommerfeld, 1868~1951)는 전자들이 단순히 부딪히는 공이 아니라, 아주 작은 원자 세계의 규칙인 <b>양자역학</b>을 따르는 입자라고 생각했어요. 전자들은 무작정 아무 에너지나 가질 수 없고, 정해진 에너지 계단에 질서정연하게 차곡차곡 쌓인다는 <b>자유전자 이론</b>을 세웠답니다.<br><br>이 이론 덕분에 전자가 금속 안에서 에너지를 어떻게 나누어 갖는지 정밀하게 계산할 수 있게 되었고, 금속의 전기 통과 능력과 열 전달 능력을 완벽하게 예측할 수 있게 되었어요.`,
+                summary: "양자역학의 질서를 갖춘 전자들이 금속의 전기와 열을 완벽히 전달합니다",
+                image: "history/08.png"
+            },
+            {
+                meta: "1928년 · 파동의 고속도로 / 블로흐: 블로흐의 정리",
+                title: "원자들이 빽빽한데 전자가 어떻게 안 부딪히고 갈까?",
+                quote: "실리콘 결정처럼 원자가 바둑판처럼 빼곡히 찬 곳에서 전자는 어떻게 부딪히지 않고 통과할까?",
+                text: `<span class="hl-name">펠릭스 블로흐</span>(F. Bloch, 1905~1983, 1952년 노벨상)는 전자를 딱딱한 알갱이로만 생각하면 규칙적인 원자 벽에 부딪혀 튕겨 나가야 마땅하다고 생각했어요. 그래서 전자를 잔물결 같은 <b>파동</b>으로 바라보았습니다.<br><br>원자들이 격자 모양으로 완벽히 규칙적으로 배열되어 있다면, 전자의 파동은 그 사이를 부딪히지 않고 미끄러지듯 통과한다는 <b>블로흐의 정리</b>를 발표했지요. 전자가 부딪힘 없이 통과할 수 있는 이 파동의 고속도로 개념은 훗날 반도체를 만드는 결정적인 뼈대가 됩니다.`,
+                summary: "규칙적인 원자 배열 속에서 전자는 물결처럼 미끄러져 나아갑니다",
+                image: "history/09.png"
+            },
+            {
+                meta: "1922년 · 은 원자 불꽃놀이 / 슈테른 & 게를라흐: 원자 자석",
+                title: "원자 하나도 자석이 될 수 있을까?",
+                quote: "은 원자를 뿜어 자석 사이를 지나가게 하면, 원자들은 어디로 날아갈까?",
+                text: `<span class="hl-name">오토 슈테른</span>(O. Stern, 1888~1969, 1943년 노벨상)과 <span class="hl-name">발터 게를라흐</span>(W. Gerlach, 1889~1979)는 진공 속에서 은(Ag) 원자를 가열해 날려 보낸 뒤, 자석의 힘이 불균일한 공간을 지나가게 했어요. 원자들이 무작위로 넓게 흩어질 것이라는 예상과 달리, 은 원자들은 위와 아래 <b>딱 두 갈래</b>의 가느다란 선으로 나뉘어 충돌했습니다.<br><br>이것은 원자 하나하나가 스스로 팽이처럼 돌며 자석 성질을 띠는 <span class="hl-mag">스핀</span>이라는 고유 성질을 가졌고, 그 자석의 방향이 위 아니면 아래 딱 두 가지 상태로만 존재한다는 양자역학의 놀라운 진실을 보여준 실험이었어요.`,
+                summary: "원자 자석의 방향(스핀)은 위와 아래, 오직 두 가지로만 정해집니다",
+                image: "history/10.png"
+            },
+            {
+                meta: "1928년 · 이웃들의 밀당 / 하이젠베르크 & 이징: 교환 상호작용",
+                title: "수억 개의 원자 자석은 어떻게 한곳을 바라볼까?",
+                quote: "철(Fe) 속에 있는 원자 자석들은 어떻게 서로 마음을 맞추어 한 방향으로 빽빽하게 줄을 서는 걸까?",
+                text: `<span class="hl-name">베르너 하이젠베르크</span>(W. Heisenberg, 1901~1976, 1932년 노벨상)는 원자 자석 하나가 주변을 당기기엔 너무 약하다는 것을 알았어요. 그래서 전자들이 서로 위치를 바꾸려 할 때 발생하는 아주 강력한 양자역학적 힘인 <b>교환 상호작용</b> 덕분임을 알아냈어요.<br><br><span class="hl-name">에른스트 이징</span>(E. Ising, 1902~1998)은 이 원자 자석들이 이웃과 같은 방향을 바라보려는 성질을 바둑판 격자 모델로 단순하게 풀어냈어요. 이로써 조그만 원자 자석들이 서로 손을 잡아 강력한 철 자석으로 탈바꿈하는 원리를 밝혀냈답니다.`,
+                summary: "이웃한 전자들의 양자적 손잡기가 거대한 자석을 만듭니다",
+                image: "history/11.png"
+            },
+            {
+                meta: "1931년 · 상상 속의 N극 / 디랙: 자기홀극",
+                title: "N극만 홀로 잘라낼 수는 없을까?",
+                quote: "전기는 플러스(+)와 마이너스(-)가 따로 있는데, 왜 자석은 N극과 S극이 항상 붙어 다닐까?",
+                text: `<span class="hl-name">폴 디랙</span>(P. A. M. Dirac, 1902~1984, 1933년 노벨상)은 전자들이 에너지를 나누어 차지하는 규칙을 정리한 뒤, 우주의 완벽한 대칭성을 상상했어요. 그리고 자석도 잘랐을 때 N극이나 S극만 홀로 존재하는 <span class="hl-mag">자기홀극(Magnetic Monopole)</span>이 수학적으로 반드시 존재할 수 있다는 파격적인 이론을 제시했지요.<br><br>현실에서 자석을 아무리 반으로 쪼개도 끝없이 N극과 S극이 쌍으로 생겨나지만, 디랙의 이 대담한 상상은 후대 물리학자들에게 새로운 탐구의 씨앗이 되었습니다.`,
+                summary: "세상 어디엔가 홀로 존재하는 N극 자석이 있을지도 모릅니다",
+                image: "history/12.png"
+            },
+            {
+                meta: "1927년 · 1인실 법칙 / 파울리: 파울리 배타 원리",
+                title: "소듐과 알루미늄은 왜 자석에 아주 약하게 붙을까?",
+                quote: "철처럼 강하지는 않지만, 소듐이나 알루미늄 같은 금속이 자석에 살짝 끌려오는 이유는 무엇일까?",
+                text: `<span class="hl-name">볼프강 파울리</span>(W. Pauli, 1900~1958, 1945년 노벨상)는 양자 세계에서 똑같은 상태와 스핀 방향을 가진 전자는 같은 방(에너지 상태)에 두 개 이상 들어갈 수 없다는 <b>파울리 배타 원리</b>를 발표했어요. 전자는 한 방에 위쪽 스핀 하나, 아래쪽 스핀 하나씩만 짝을 이루어 들어갈 수 있지요.<br><br>이 원리를 소듐(Na)이나 알루미늄(Al) 같은 금속에 적용했더니, 외부에 강한 자석을 대었을 때 짝이 맞지 않는 몇몇 자유전자들이 자석 방향으로 스핀을 돌리며 약한 자성을 띠는 현상을 깔끔하게 설명해 냈습니다.`,
+                summary: "양자 세계의 1인실 규칙이 금속의 미세한 자성을 결정합니다",
+                image: "history/13.png"
+            },
+            {
+                meta: "1927년 · 버스 의자의 비밀 / 훈트: 훈트 규칙",
+                title: "왜 철, 코발트, 니켈은 유독 자석 힘이 셀까?",
+                quote: "원자 안에서 전자들은 어떤 순서로 방을 채워 나갈까?",
+                text: `<span class="hl-name">프리드리히 훈트</span>(F. Hund, 1896~1997)는 전자가 채워질 때 매우 재미있는 습관이 있다는 것을 발견했어요. 2인용 의자가 많은 버스에 승객들이 타면 처음에 다들 혼자 앉듯, 전자들도 방이 넉넉하면 짝을 이루지 않고 혼자 방을 차지하려는 <b>훈트 규칙</b>을 따른다는 것이죠.<br><br>이렇게 혼자 방을 쓰며 짝을 이루지 못한 <span class="hl-mag">홀전자</span>가 많을수록 원자의 자석 힘이 강해집니다. 철이나 코발트, 니켈은 바로 이 홀전자가 아주 많이 남아있기 때문에 유독 강력한 자성을 띤다는 비밀이 밝혀졌어요.`,
+                summary: "혼자 앉기를 좋아하는 전자들의 습관이 강력한 자성을 만듭니다",
+                image: "history/14.png"
+            },
+            {
+                meta: "1947년 · 다리 셋 스위치 / 쇼클리, 브래튼, 바딘: 트랜지스터",
+                title: "전기를 켜고 끄는 작은 스위치를 만들 수 없을까?",
+                quote: "전기가 흐르기도 하고 안 흐르기도 하는 반도체로 전기 신호를 자유자재로 조절할 수 없을까?",
+                text: `<span class="hl-name">윌리엄 쇼클리</span>(W. Shockley, 1910~1989), <span class="hl-name">월터 브래튼</span>(W. Brattain, 1902~1987), <span class="hl-name">존 바딘</span>(J. Bardeen, 1908~1991, 1956년 노벨상)은 저마늄(Ge)과 실리콘(Si) 같은 반도체 물질의 성질을 연구하다가, 전기 신호를 순식간에 켜고 끄거나 증폭해 주는 <span class="hl-elec">트랜지스터</span>를 개발했어요.<br><br>이전에는 커다랗고 뜨거우며 잘 깨지던 유리 진공관을 썼지만, 손톱보다 작은 반도체 스위치인 트랜지스터가 등장하면서 오늘날 컴퓨터, 스마트폰, 모든 첨단 가전제품이 탄생하는 전자공학 혁명이 시작되었습니다.`,
+                summary: "작은 반도체 조각 하나가 디지털 세상을 열었습니다",
+                image: "history/15.png"
+            },
+            {
+                meta: "1936년 · 숨죽인 자석들 / 네엘: 반강자성",
+                title: "자석 알갱이들이 서로 반대로 서면 어떻게 될까?",
+                quote: "원자 자석들이 한쪽을 보지 않고, 서로 마주 보며 반대로 줄을 서면 어떤 일이 일어날까?",
+                text: `<span class="hl-name">루이 네엘</span>(L. Néel, 1904~2000, 1970년 노벨상)은 모든 원자 자석이 한쪽을 향하는 철과 달리, 원자 자석들이 위-아래-위-아래처럼 서로 완벽히 반대 방향으로 번갈아 정렬하는 성질을 발견했어요. 이를 <span class="hl-mag">반강자성</span>이라 부르며 산화망가니즈(MnO)에서 확인했지요.<br><br>밖에서 보면 위쪽 힘과 아래쪽 힘이 서로를 상쇄하여 자석의 힘이 전혀 없는 평범한 돌처럼 보여요. 하지만 내부를 들여다보면 원자 자석들이 팽팽하게 질서를 유지하고 있는 반전 매력의 상태랍니다.`,
+                summary: "겉은 평범해 보여도 내부에서는 반대 방향의 원자 자석들이 팽팽히 맞서고 있습니다",
+                image: "history/16.png"
+            },
+            {
+                meta: "1957년 · 저항 제로의 기적 / 바딘, 쿠퍼, 슈리퍼: 초전도체 이론",
+                title: "극한의 추위 속에서 전자들은 왜 저항을 잊을까?",
+                quote: "수은을 영하 269도까지 차갑게 식히면 전기를 방해하는 저항이 왜 완벽히 0이 될까?",
+                text: `<span class="hl-name">존 바딘</span>, <span class="hl-name">리언 쿠퍼</span>(L. Cooper, 1930~2015), <span class="hl-name">존 슈리퍼</span>(J. Schrieffer, 1931~2004, 1972년 노벨상)는 영하 200도가 넘는 극저온의 수은(Hg) 속에서는 전자 두 개가 원자 격자의 진동을 매개로 서로 끌어당겨 <span class="hl-elec">쿠퍼 쌍</span>이라는 짝을 이룬다는 것을 밝혔어요.<br><br>혼자 달릴 때는 원자들에 쿵쿵 부딪혀 전기를 방해받았지만, 둘이 손을 맞잡은 전자 쌍은 얼음판 위를 미끄러지듯 유유히 통과해요. 장애물에 전혀 부딪히지 않기 때문에 <b>전기 저항이 완벽히 0</b>이 되는 초전도 현상이 일어나는 것이랍니다.`,
+                summary: "둘이 손잡은 전자 쌍은 장애물에 부딪히지 않고 미끄러집니다",
+                image: "history/17.png"
+            },
+            {
+                meta: "1962년 · 양자 유령 통로 / 조지프슨: 조지프슨 효과",
+                title: "전기가 안 통하는 벽도 뚫고 갈 수 있을까?",
+                quote: "초전도체 두 개 사이에 전기가 전혀 안 통하는 절연체 벽을 끼워 넣으면 어떻게 될까?",
+                text: `우리 눈에 보이는 세상에서는 벽에 부딪히면 튕겨 나가지만, 양자 세상에서는 입자가 에너지가 부족해도 마치 유령처럼 벽을 스르륵 통과하는 <b>양자 터널링</b> 현상이 일어나요.<br><br><span class="hl-name">브라이언 조지프슨</span>(B. Josephson, 1940~, 1973년 노벨상)은 초전도체 속 쿠퍼 쌍 전자들이 전압이 없어도 절연체 벽을 뚫고 통과해 전류가 흐를 것이라 예측했어요. 이 현상은 훗날 뇌의 미세한 자기장까지 찾아내는 초고감도 자기 센서인 스퀴드(SQUID)의 핵심 기술이 되었답니다.`,
+                summary: "양자 세상의 전자 쌍은 절연체 벽도 유령처럼 뚫고 지나갑니다",
+                image: "history/18.png"
+            },
+            {
+                meta: "1970년대~ · 물질 속의 유령 N극 / 밴블랙, 앤더슨, 모트",
+                title: "자르지 않고 N극만 홀로 떠돌게 할 수 있을까?",
+                quote: "디랙이 상상했던 N극 혼자 존재하는 자기홀극을 진짜 물질 안에서 만들어낼 수 있을까?",
+                text: `<span class="hl-name">존 밴블랙</span>(J. Van Vleck, 1899~1980), <span class="hl-name">필립 앤더슨</span>(P. Anderson, 1923~2020), <span class="hl-name">네빌 모트</span>(N. Mott, 1905~1996, 1977년 노벨상)의 연구를 거쳐, 타이타늄산홀뮴(Ho₂Ti₂O₇)이라는 <span class="hl-mag">스핀 아이스</span> 물질에서 놀라운 현상이 발견되었어요.<br><br>온도나 자극을 주어 자석의 균형이 깨지면 N극의 성질만 남은 지점이 생겨납니다. 자석을 직접 칼로 자른 게 아니라, 전자들의 스핀이 연쇄적으로 뒤집히며 N극의 자성만 띤 상태가 독립된 입자처럼 둥둥 떠다니는 것이죠! 전자의 스핀을 정보 처리에 쓰는 <b>스핀트로닉스</b> 시대가 열렸습니다.`,
+                summary: "자석을 잘라내지 않고도 물질 내부에서 홀로 다니는 N극을 만들어냈습니다",
+                image: "history/19.png"
+            },
+            {
+                meta: "1958년 · 손톱 위의 도시 / 킬비: 집적 회로",
+                title: "복잡한 전선들을 다 없앨 수는 없을까?",
+                quote: "트랜지스터, 저항, 콘덴서를 일일이 전선으로 잇지 않고 판 하나에 다 새겨 넣을 순 없을까?",
+                text: `전자기기가 복잡해질수록 부품을 연결하는 전선이 엉키고 고장이 자주 났어요. <span class="hl-name">잭 킬비</span>(J. Kilby, 1923~2005, 2000년 노벨상)는 실리콘(Si) 반도체 조각 하나 위에 모든 전기 회로 부품을 통째로 모아서 제작하는 <span class="hl-elec">집적 회로(IC)</span>를 개발했습니다.<br><br>복잡하게 얽혀 있던 전선 도시를 조그만 실리콘 칩 하나 위에 인쇄하듯 찍어낸 것이죠. 이 기술 덕분에 방 하나를 가득 채우던 초대형 컴퓨터가 우리 주머니 속 스마트폰 안으로 들어올 수 있게 되었습니다.`,
+                summary: "복잡한 회로판 전체를 작은 반도체 조각 하나에 집어넣었습니다",
+                image: "history/20.png"
+            },
+            {
+                meta: "1988년 · 나노 샌드위치 / 페르 & 그륀베르크: 거대자기저항",
+                title: "아주 작은 자석의 변화로 전기를 크게 조절할 수 있을까?",
+                quote: "나노미터 두께로 얇게 겹친 금속판에 자석을 대면 전기가 어떻게 흐를까?",
+                text: `<span class="hl-name">알베르 페르</span>(A. Fert, 1938~)와 <span class="hl-name">페터 그륀베르크</span>(P. Grünberg, 1939~2018, 2007년 노벨상)는 철과 크로뮴(Fe/Cr)을 나노미터 단위의 아주 얇은 막으로 샌드위치처럼 겹겹이 쌓았어요. 그리고 미세한 자석의 힘을 가하자 전기 흐름을 방해하는 저항이 폭발적으로 줄어드는 <span class="hl-mag">거대자기저항(GMR)</span> 현상을 발견했습니다.<br><br>전자의 전기적 성질뿐만 아니라 스핀 성질까지 제어하여 전기 저항을 마음대로 조절한 것이죠. 이 기술 덕분에 하드디스크가 미세한 자기 신호도 정확히 읽어내어 저장 용량이 수천 배나 커졌습니다.`,
+                summary: "전자의 스핀을 조절하자 미세한 자석의 힘으로 큰 전기를 제어하게 되었습니다",
+                image: "history/21.png"
+            },
+            {
+                meta: "1990년대 · 푸른빛의 완성 / 아카사키, 아마노, 나카무라",
+                title: "꿈의 푸른빛을 만들어 흰색 세상을 열 수 있을까?",
+                quote: "빨간색, 초록색 LED는 있는데, 왜 파란색 LED는 아무도 만들지 못할까?",
+                text: `전기를 걸면 빛을 내는 반도체인 LED에서 빨간색과 초록색은 일찍 만들어졌지만, 빛의 삼원색을 완성해 흰색 조명을 만들기 위한 푸른색 LED는 수십 년간 통곡의 벽이었습니다.<br><br><span class="hl-name">아카사키 이사무</span>(I. Akasaki, 1929~2021), <span class="hl-name">아마노 히로시</span>(H. Amano, 1960~), <span class="hl-name">나카무라 슈지</span>(S. Nakamura, 1954~, 2014년 노벨상)는 만들기 극도로 까다로웠던 질화갈륨(GaN) 반도체에 수만 번 도전한 끝에 마침내 맑고 깨끗한 <b>청색 LED</b>를 밝히는 데 성공했지요. 덕분에 오늘날 획기적인 흰색 LED 조명과 스마트폰 화면이 태어났습니다.`,
+                summary: "수만 번의 실패 끝에 만든 질화갈륨 결정이 인류에게 눈부신 흰색 빛을 선물했습니다",
+                image: "history/22.png"
+            },
+            {
+                meta: "1980년대~ · 도넛 세상 / 사울레스, 홀데인, 코스털리츠",
+                title: "속은 꽉 막혔는데 겉은 고속도로인 물질이 있을까?",
+                quote: "도넛을 주물러도 구멍의 개수가 변하지 않는 수학 공식으로 물질의 전기를 설명하면 어떻게 될까?",
+                text: `<span class="hl-name">데이비드 사울레스</span>(D. Thouless, 1934~2019), <span class="hl-name">덩컨 홀데인</span>(F. Haldane, 1951~), <span class="hl-name">마이클 코스털리츠</span>(J. Kosterlitz, 1943~, 2016년 노벨상)는 도넛과 컵을 같은 모양으로 취급하는 <b>위상수학</b> 개념을 물리학에 가져와 <span class="hl-elec">위상절연체</span>를 예견했어요.<br><br>셀레늄화비스무트(Bi₂Se₃) 같은 물질은 신기하게도 내부 속은 전기가 전혀 통하지 않는 절연체입니다. 하지만 표면이나 테두리는 수학적 위상 성질 덕분에 전자가 부딪히지 않고 <b>고속도로처럼 질주</b>해요. 전자기학의 미시적 세계를 새로운 차원으로 넓혀 놓은 현대 물리학의 정점입니다. 위상절연체는 앞으로 <b>양자컴퓨터</b>와 <b>스핀트로닉스</b>의 핵심 소자가 되어 여러분의 부모님이 사랑하는 <b>NDX(나스닥100)</b>와 <b>SOX(필라델피아 반도체 지수)</b>의 성장을 가져올 가장 유력한 후보 물질이랍니다.`,
+                summary: "속은 절연체이지만 겉 표면은 전자가 막힘없이 달리는 고속도로가 됩니다",
+                image: "history/23.png"
+            }
+        ];
+
+        let currentSlide = 0;
+        const totalSlides = slidesData.length;
+
+        function initApp() {
+            const renderArea = document.getElementById('slideRenderArea');
+            const tocGrid = document.getElementById('tocGrid');
+
+            slidesData.forEach((slide, index) => {
+                // Generate Slide HTML
+                const slideHTML = `
+                    <div class="slide" id="slide-${index}">
+                        <div class="slide-content">
+                            <div class="slide-meta">${slide.meta}</div>
+                            <h2 class="slide-title">${slide.title}</h2>
+                            <div class="slide-quote">
+                                <b>"</b>${slide.quote}<b>"</b>
+                            </div>
+                            <div class="slide-text">${slide.text}</div>
+                            <div class="slide-summary">${slide.summary}</div>
+                        </div>
+                        <div class="slide-visual">
+                            <img src="${slide.image}" alt="${slide.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="visual-placeholder" style="display: none;">
+                                📷 ${slide.image}<br>
+                                <span style="font-size: 1rem; color: #64748b; font-family: var(--font-text);">이미지를 여기에 넣어주세요</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                renderArea.innerHTML += slideHTML;
+
+                // Generate TOC Item
+                const tocItem = document.createElement('div');
+                tocItem.className = 'toc-item';
+                tocItem.onclick = () => {
+                    closeModal();
+                    goToSlide(index);
+                };
+                tocItem.innerHTML = `
+                    <div class="toc-num">${index + 1} / ${totalSlides}</div>
+                    <div class="toc-title">${slide.title}</div>
+                `;
+                tocGrid.appendChild(tocItem);
+            });
+        }
+
+        function startExperience() {
+            document.getElementById('landingContainer').style.display = 'none';
+            document.getElementById('pageHeader').style.padding = '2rem 1rem';
+            document.getElementById('topNav').style.display = 'block';
+            document.getElementById('sliderContainer').style.display = 'flex';
+            
+            goToSlide(0);
+        }
+
+        function updateControls() {
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+            document.getElementById('progressIndicator').innerText = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function goToSlide(index) {
+            // Hide all slides
+            for (let i = 0; i < totalSlides; i++) {
+                const el = document.getElementById(`slide-${i}`);
+                if (el) el.classList.remove('active');
+            }
+            // Show target slide
+            const targetEl = document.getElementById(`slide-${index}`);
+            if (targetEl) targetEl.classList.add('active');
+            
+            currentSlide = index;
+            updateControls();
+            
+            // Trigger a lightning flash on slide change for cool effect
+            lightningFlash = 0.5;
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) goToSlide(currentSlide - 1);
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+        }
+
+        // TOC Modal Logic
+        function openModal() {
+            document.getElementById('tocModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('tocModal').classList.remove('active');
+        }
+
+        // Initialize the HTML generation on load
+        initApp();
+
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const electrons = [];
+        const spins = [];
+        let lightningFlash = 0;
+
+        class Electron {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * height;
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = -10;
+                this.size = Math.random() * 2 + 1;
+                this.speed = Math.random() * 2 + 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height) this.reset();
+            }
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 229, 255, ${this.opacity})`; 
+                ctx.fill();
+            }
+        }
+
+        class Spin {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * width;
+            }
+            reset() {
+                this.x = -30;
+                this.y = Math.random() * height;
+                this.baseY = this.y;
+                this.speedX = Math.random() * 1 + 0.3;
+                this.amplitude = Math.random() * 40 + 10;
+                this.frequency = Math.random() * 0.015 + 0.005;
+                this.angle = Math.random() * Math.PI * 2;
+                this.type = Math.random() > 0.5 ? '↑' : '↓';
+                this.opacity = Math.random() * 0.2 + 0.05;
+                this.size = Math.floor(Math.random() * 12 + 10);
+            }
+            update() {
+                this.x += this.speedX;
+                this.angle += this.frequency;
+                this.y = this.baseY + Math.sin(this.angle) * this.amplitude;
+                if (this.x > width + 30) this.reset();
+            }
+            draw(ctx) {
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillStyle = `rgba(255, 0, 127, ${this.opacity})`;
+                ctx.fillText(this.type, this.x, this.y);
+            }
+        }
+
+        for (let i = 0; i < 40; i++) electrons.push(new Electron());
+        for (let i = 0; i < 20; i++) spins.push(new Spin());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 11, 16, 0.4)';
+            ctx.fillRect(0, 0, width, height);
+
+            if (Math.random() < 0.002) { 
+                lightningFlash = 1.0; 
+            }
+            
+            if (lightningFlash > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash * 0.12})`;
+                ctx.fillRect(0, 0, width, height);
+                lightningFlash -= 0.03;
+            }
+
+            electrons.forEach(e => { e.update(); e.draw(ctx); });
+            spins.forEach(s => { s.update(); s.draw(ctx); });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
