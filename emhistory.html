@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전자기학의 역사 - 전기와 자기 이야기</title>
     
+    <!-- Three.js and OrbitControls for 3D Spin Ice Interactive Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
 
@@ -245,7 +249,7 @@
             border-radius: 20px;
             overflow: hidden;
             position: relative;
-            min-height: 400px;
+            min-height: 420px;
             backdrop-filter: blur(5px);
         }
 
@@ -419,19 +423,210 @@
             line-height: 1.4;
         }
 
+        .spin-ice-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #131728 0%, #08090e 100%);
+        }
+
+        .spin-title-panel {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            z-index: 20;
+            pointer-events: auto;
+            background: rgba(10, 11, 16, 0.65);
+            padding: 0.5rem 0.9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+        }
+
+        .spin-title-text {
+            font-family: var(--font-title);
+            font-size: 1.05rem;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ho-info-btn {
+            background: rgba(0, 229, 255, 0.15);
+            border: 1px solid var(--accent-electric);
+            color: var(--accent-electric);
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .ho-info-btn:hover {
+            background: var(--accent-electric);
+            color: var(--bg-color-main);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+        }
+
+        #spin-ice-canvas {
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            display: block;
+            cursor: grab;
+            touch-action: none;
+        }
+        #spin-ice-canvas:active {
+            cursor: grabbing;
+        }
+
+        .spin-bottom-container {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .spin-ui-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            pointer-events: auto;
+        }
+
+        .spin-ui-group {
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .spin-btn {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #e2e8f0;
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .spin-btn:hover {
+            background: rgba(0, 229, 255, 0.25);
+            border-color: var(--accent-electric);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 229, 255, 0.3);
+        }
+
+        .spin-btn.active {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.4), rgba(255, 0, 127, 0.4));
+            border-color: var(--accent-highlight);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+        }
+
+        .spin-btn-primary {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.3), rgba(0, 229, 255, 0.3));
+            border: 1.5px solid var(--accent-magnetic);
+            color: #ffffff;
+        }
+        .spin-btn-primary:hover {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.6), rgba(0, 229, 255, 0.6));
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
+        }
+
+        .spin-status-badge {
+            background: rgba(10, 11, 16, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            font-family: var(--font-text);
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .spin-status-title {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spin-badge-normal {
+            color: var(--accent-electric);
+        }
+
+        .spin-badge-monopole {
+            color: var(--accent-magnetic);
+            animation: pulseGlow 1.5s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            from { text-shadow: 0 0 5px rgba(255, 0, 127, 0.5); }
+            to { text-shadow: 0 0 18px rgba(255, 0, 127, 1.0); }
+        }
+
         @media (max-width: 900px) {
             .slide {
                 flex-direction: column;
             }
             .slide-visual {
-                min-height: 250px;
-                order: -1; /* Image on top for mobile */
+                min-height: 380px;
+                order: -1; /* Image/Visual on top for mobile */
             }
             .page-header {
                 padding: 3rem 1rem 2rem 1rem;
             }
             .main-title {
                 margin-top: 2rem;
+            }
+            .spin-ui-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .spin-ui-group {
+                justify-content: center;
+            }
+            .spin-status-badge {
+                flex-direction: column;
+                gap: 6px;
+                text-align: center;
             }
         }
     </style>
@@ -482,6 +677,44 @@
             </div>
             <div class="toc-grid" id="tocGrid">
                 <!-- TOC Items injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Holmium Info Modal -->
+    <div class="modal-overlay" id="hoModal">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2>홀뮴(Ho, 원자번호 67) 원소 정보</h2>
+                <button class="close-btn" onclick="closeHoModal()">×</button>
+            </div>
+            <div style="padding: 1.8rem; color: #e2e8f0; font-family: var(--font-text); line-height: 1.8; overflow-y: auto;">
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.2rem; background: rgba(0,229,255,0.08); padding: 1rem; border-radius: 12px; border: 1px solid rgba(0,229,255,0.2);">
+                    <div style="font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-electric); min-width: 70px; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 1rem; line-height: 1.1;">67<br><span style="font-size: 1.6rem; color: #fff;">Ho</span></div>
+                    <div>
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem; color: #fff; margin: 0;">홀뮴 (Holmium)</h3>
+                        <p style="font-size: 0.95rem; color: var(--text-muted); margin: 0;">란타넘족 희토류 원소 | 원자량: 164.93 | 전자 배치: [Xe] 4f¹¹ 6s²</p>
+                    </div>
+                </div>
+                <h4 style="font-family: var(--font-title); color: var(--accent-highlight); font-size: 1.15rem; margin-top: 1rem; margin-bottom: 0.4rem;">🔬 홀뮴 원소와 전자 배치의 비밀</h4>
+                <p style="margin-bottom: 1rem;">
+                    홀뮴(Ho)은 원자 번호 67번 원소로, 전자 배치는 <b>[Xe] 4f<sup>11</sup> 6s<sup>2</sup></b>입니다. 안쪽 제논(Xe) 전자껍질 위에 4f 방에 11개, 6s 방에 2개의 전자가 들어 있지요. 
+                    4f 방에서 짝을 찾지 못하고 홀로 남은 '홀전자'가 무려 4개나 되다 보니, 자연계 원소 중 <b>가장 강력한 미니 자석 힘(자기 모멘트 약 10.6 μ<sub>B</sub>)</b>을 뿜어냅니다.
+                </p>
+                <h4 style="font-family: var(--font-title); color: var(--accent-highlight); font-size: 1.15rem; margin-top: 1rem; margin-bottom: 0.4rem;">🧊 양자 자성과 '스핀 아이스' 규칙</h4>
+                <p style="margin-bottom: 1rem;">
+                    타이타늄산홀뮴(Ho<sub>2</sub>Ti<sub>2</sub>O<sub>7</sub>)이라는 물질 속에서 홀뮴 원자들은 삼각뿔(정사면체) 형태의 입체 그물망을 만듭니다. 
+                    아주 차가운 온도(극저온)가 되면 홀뮴 원자 자석들은 마치 얼음 속 물 분자들처럼 각 삼각뿔 중심을 향해 <b>2개는 안으로 들어가고 2개는 밖으로 나가는(2-In 2-Out)</b> 재미있는 규칙을 지켜요.
+                </p>
+                <h4 style="font-family: var(--font-title); color: var(--accent-highlight); font-size: 1.15rem; margin-top: 1rem; margin-bottom: 0.4rem;">⚡ 자석을 잘라내지 않고 만든 '자기홀극'</h4>
+                <p style="margin-bottom: 1rem;">
+                    보통 자석은 아무리 반으로 잘라도 N극과 S극이 항상 붙어 있습니다. 하지만 홀뮴 스핀 아이스에서는 중앙의 스핀 하나를 살짝 뒤집는 것만으로 2-In 2-Out 균형이 깨지면서, 
+                    마치 <b>N극만 따로 떨어진 유령 자석(자기홀극)과 S극 유령 자석</b>이 물질 안에서 자유롭게 헤엄쳐 다닐 수 있게 됩니다.
+                </p>
+                <h4 style="font-family: var(--font-title); color: var(--accent-highlight); font-size: 1.15rem; margin-top: 1rem; margin-bottom: 0.4rem;">🚀 미래 양자 컴퓨터와 차세대 메모리</h4>
+                <p style="margin: 0;">
+                    홀뮴의 강한 자성과 자기홀극 특성은 전자의 자석 성질을 정보로 활용하는 <b>스핀트로닉스 메모리</b>와, 초고속 <b>양자 컴퓨터</b>를 개발하는 핵심 열쇠로 주목받고 있습니다.
+                </p>
             </div>
         </div>
     </div>
@@ -639,6 +872,7 @@
                 quote: "디랙이 상상했던 N극 혼자 존재하는 자기홀극을 진짜 물질 안에서 만들어낼 수 있을까?",
                 text: `<span class="hl-name">존 해즈브룩 밴블랙</span>(J. H. Van Vleck, 1899~1980), <span class="hl-name">필립 워런 앤더슨</span>(P. W. Anderson, 1923~2020), <span class="hl-name">네빌 프랜시스 모트</span>(N. F. Mott, 1905~1996, 1977년 노벨상)는 물질 속의 수많은 전자가 서로 정말 끈끈한 우정으로 매우 친하게 지내면 작은 물질 단위에서는 일어나지 않는 새로운 현상인 <b>창발현상(Emergent phenomenon)</b>이 나타난다는 것을 알아내고, 결국 이 연구로부터 이어져 타이타늄산홀뮴(Ho₂Ti₂O₇)이라는 <span class="hl-mag">스핀 아이스</span> 물질에서 놀라운 현상이 발견되었어요.<br><br>온도나 자극을 주어 자석의 균형이 깨지면 N극의 성질만 남은 지점이 생겨납니다. 자석을 직접 칼로 자른 게 아니라, 전자들의 스핀이 연쇄적으로 뒤집히며 N극의 자성만 띤 상태가 독립된 입자처럼 둥둥 떠다니는 것이죠! 전자의 스핀을 정보 처리에 쓰는 <b>스핀트로닉스</b> 시대가 열렸습니다.`,
                 summary: "자석을 잘라내지 않고도 물질 내부에서 홀로 다니는 N극을 만들어냈습니다",
+                isInteractive3D: true, // Interactive 3D Spin Ice Monopole Module replaces history/19.png
                 image: "history/19.png"
             },
             {
@@ -661,7 +895,7 @@
                 meta: "1990년대 · 푸른빛의 완성 / 아카사키, 아마노, 나카무라",
                 title: "꿈의 푸른빛을 만들어 흰색 세상을 열 수 있을까?",
                 quote: "빨간색, 초록색 LED는 있는데, 왜 파란색 LED는 아무도 만들지 못할까?",
-                text: `전기를 걸면 빛을 내는 반도체인 LED에서 빨간색과 초록색은 일찍 만들어졌지만, 빛의 삼원색을 완성해 흰색 조명을 만들기 위한 푸른색 LED는 수십 년간 통곡의 벽이었습니다.<br><br><span class="hl-name">아카사키 이사무</span>(I. Akasaki, 1929~2021), <span class="hl-name">아마노 히로시</span>(H. Amano, 1960~), <span class="hl-name">나카무라 슈지</span>(S. Nakamura, 1954~, 2014년 노벨상)는 만들기 극도로 까다로웠던 질화갈륨(GaN) 반도체에 수만 번 도전한 끝에 마침내 맑고 깨끗한 <b>청색 LED</b>를 밝히는 데 성공했지요. 덕분에 오늘날 획기적인 흰색 LED 조명과 스마트폰 화면이 태어났습니다.`,
+                text: `전기를 걸면 빛을 내는 반도체인 LED에서 빨간색과 초록색은 일찍 만들어졌지만, 빛의 삼원색을 완성해 흰색 조명을 만들기 위한 푸른색 LED는 수십 년간 통곡의 벽이었습니다.<br><br><span class="hl-name">아카사키 이사무</span>(I. Akasaki, 1929~2021), <span class="hl-name">아마노 히로시</span>(H. Amano, 1960~), <span class="hl-name">나카무라 슈지</span>(S. Nakamura, 1954~, 2014년 노벨상)는 만들기 극도로 까다로웠던 질화갈륨(GaN) 반도체에 수만 번 도전한 끝에 마침내 맑고 깨끗한 <b style="color: rgb(31, 81, 255);">청색 LED</b>를 밝히는 데 성공했지요. 덕분에 오늘날 획기적인 흰색 LED 조명과 스마트폰 화면이 태어났습니다.`,
                 summary: "수만 번의 실패 끝에 만든 질화갈륨 결정이 인류에게 눈부신 흰색 빛을 선물했습니다",
                 image: "history/22.png"
             },
@@ -683,6 +917,67 @@
             const tocGrid = document.getElementById('tocGrid');
 
             slidesData.forEach((slide, index) => {
+                // Generate Visual Container (Standard Image vs Interactive 3D for Slide 19)
+                let visualHTML = '';
+                if (slide.isInteractive3D) {
+                    visualHTML = `
+                        <div class="spin-ice-wrapper">
+                            <!-- Top Title Panel -->
+                            <div class="spin-title-panel">
+                                <div class="spin-title-text">
+                                    <span>🔬 타이타늄산홀뮴(Ho₂Ti₂O₇)에서 자기홀극 찾기</span>
+                                </div>
+                                <button class="ho-info-btn" onclick="openHoModal()">
+                                    ℹ️ 홀뮴(Ho) 정보
+                                </button>
+                            </div>
+
+                            <!-- Canvas Container for Three.js -->
+                            <canvas id="spin-ice-canvas"></canvas>
+
+                            <!-- Bottom Container (Buttons + Status Badge) -->
+                            <div class="spin-bottom-container">
+                                <div class="spin-ui-panel">
+                                    <div class="spin-ui-group">
+                                        <button class="spin-btn active" id="mode-magnet-btn" onclick="setSpinDisplayMode('magnet')">
+                                            🧲 막대자석 보기
+                                        </button>
+                                        <button class="spin-btn" id="mode-arrow-btn" onclick="setSpinDisplayMode('arrow')">
+                                            ➔ 화살표 보기
+                                        </button>
+                                    </div>
+                                    <div class="spin-ui-group">
+                                        <button class="spin-btn spin-btn-primary" onclick="flipSharedSpin()">
+                                            🔄 스핀 뒤집기
+                                        </button>
+                                        <button class="spin-btn" onclick="resetSpinIceView()">
+                                            🎯 초기화
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Status Badge -->
+                                <div class="spin-status-badge">
+                                    <div class="spin-status-title" id="spin-status-title">
+                                        <span class="spin-badge-normal">✨ 2-In 2-Out 안정한 상태</span>
+                                    </div>
+                                    <div id="spin-status-desc" style="font-size:0.88rem; color:#94a3b8;">
+                                        피라미드(사면체) 공간 중심을 향해 미니 자석 2개는 안쪽, 2개는 바깥쪽을 바라보며 완벽하게 균형을 맞춘 상태입니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    visualHTML = `
+                        <img src="${slide.image}" alt="${slide.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="visual-placeholder" style="display: none;">
+                            📷 ${slide.image}<br>
+                            <span style="font-size: 1rem; color: #64748b; font-family: var(--font-text);">이미지를 여기에 넣어주세요</span>
+                        </div>
+                    `;
+                }
+
                 // Generate Slide HTML
                 const slideHTML = `
                     <div class="slide" id="slide-${index}">
@@ -695,12 +990,8 @@
                             <div class="slide-text">${slide.text}</div>
                             <div class="slide-summary">${slide.summary}</div>
                         </div>
-                        <div class="slide-visual">
-                            <img src="${slide.image}" alt="${slide.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="visual-placeholder" style="display: none;">
-                                📷 ${slide.image}<br>
-                                <span style="font-size: 1rem; color: #64748b; font-family: var(--font-text);">이미지를 여기에 넣어주세요</span>
-                            </div>
+                        <div class="slide-visual" id="${slide.isInteractive3D ? 'spinIceVisualContainer' : ''}">
+                            ${visualHTML}
                         </div>
                     </div>
                 `;
@@ -751,6 +1042,13 @@
             
             // Trigger a lightning flash on slide change for cool effect
             lightningFlash = 0.5;
+
+            // Initialize or resize 3D Spin Ice if navigated to Slide 19
+            if (slidesData[index] && slidesData[index].isInteractive3D) {
+                setTimeout(() => {
+                    initSpinIce3D();
+                }, 50);
+            }
         }
 
         function prevSlide() {
@@ -758,7 +1056,7 @@
         }
 
         function nextSlide() {
-            if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+            if (currentSlide < totalSlides - 1) goToSlide(currentSlide - 1 + 2);
         }
 
         // TOC Modal Logic
@@ -768,6 +1066,557 @@
 
         function closeModal() {
             document.getElementById('tocModal').classList.remove('active');
+        }
+
+        function openHoModal() {
+            document.getElementById('hoModal').classList.add('active');
+        }
+
+        function closeHoModal() {
+            document.getElementById('hoModal').classList.remove('active');
+        }
+
+        /*
+         * 3D Spin Ice Interactive Simulation Engine
+         * - Precise ion lattice placement (pyrochlore corner-sharing tetrahedra)
+         * - Centroid-exact magnetic monopoles & vector field lines
+         * - Clean camera view fit
+         */
+        let spinScene, spinCamera, spinRenderer, spinControls;
+        let spinIceInitialized = false;
+        let displayMode = 'magnet'; // 'magnet' or 'arrow'
+
+        function createBarMagnetMesh() {
+            const group = new THREE.Group();
+            const radius = 0.11;
+            const halfLen = 0.45;
+            const geoHalf = new THREE.CylinderGeometry(radius, radius, halfLen, 16);
+
+            // North pole (red)
+            const matN = new THREE.MeshStandardMaterial({ 
+                color: 0xff3366, 
+                metalness: 0.5, 
+                roughness: 0.3, 
+                emissive: 0x330011, 
+                emissiveIntensity: 0.2 
+            });
+            const meshN = new THREE.Mesh(geoHalf, matN);
+            meshN.position.y = halfLen / 2;
+            group.add(meshN);
+
+            // South pole (blue)
+            const matS = new THREE.MeshStandardMaterial({ 
+                color: 0x3388ff, 
+                metalness: 0.5, 
+                roughness: 0.3, 
+                emissive: 0x001133, 
+                emissiveIntensity: 0.2 
+            });
+            const meshS = new THREE.Mesh(geoHalf, matS);
+            meshS.position.y = -halfLen / 2;
+            group.add(meshS);
+
+            return group;
+        }
+
+        function createArrowMesh() {
+            const group = new THREE.Group();
+            const shaftGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.6, 16);
+            const headGeo = new THREE.ConeGeometry(0.16, 0.3, 16);
+            const arrowMat = new THREE.MeshStandardMaterial({ 
+                color: 0x00e5ff, 
+                metalness: 0.6, 
+                roughness: 0.2, 
+                emissive: 0x003344, 
+                emissiveIntensity: 0.3 
+            });
+
+            const shaft = new THREE.Mesh(shaftGeo, arrowMat);
+            shaft.position.y = 0.3;
+            group.add(shaft);
+
+            const head = new THREE.Mesh(headGeo, arrowMat);
+            head.position.y = 0.75;
+            group.add(head);
+
+            group.position.y = -0.45;
+            return group;
+        }
+
+        function setSpinDisplayMode(mode) {
+            displayMode = mode;
+            const magnetBtn = document.getElementById('mode-magnet-btn');
+            const arrowBtn = document.getElementById('mode-arrow-btn');
+
+            if (magnetBtn) magnetBtn.classList.toggle('active', mode === 'magnet');
+            if (arrowBtn) arrowBtn.classList.toggle('active', mode === 'arrow');
+
+            spinObjects.forEach(obj => {
+                if (obj.barGroup) obj.barGroup.visible = (mode === 'magnet');
+                if (obj.arrowGroup) obj.arrowGroup.visible = (mode === 'arrow');
+            });
+        }
+
+        function updateAllSpinOrientations(animate = true) {
+            spinObjects.forEach(obj => {
+                const ion = obj.ion;
+                let axis = ion.localAxisLeft || ion.localAxisRight;
+                if (!axis) axis = new THREE.Vector3(1, 0, 0);
+
+                const targetDir = axis.clone().multiplyScalar(ion.spinSign).normalize();
+                obj.targetDir.copy(targetDir);
+
+                if (!animate) {
+                    obj.currentDir.copy(targetDir);
+                    const defaultDir = new THREE.Vector3(0, 1, 0);
+                    const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
+                    obj.group.quaternion.copy(q);
+                    obj.animating = false;
+                    obj.animProgress = 1.0;
+                } else {
+                    obj.animating = true;
+                    obj.animProgress = 0;
+                }
+            });
+
+            setSpinDisplayMode(displayMode);
+        }
+
+        // Lattice Parameters: 2 corner-sharing tetrahedra sharing a central ion
+        const R_TETRA = 1.8;
+        const centerLeft = new THREE.Vector3(-1.8, 0, 0);
+        const centerRight = new THREE.Vector3(1.8, 0, 0);
+
+        // Centroids of tetrahedra
+        let centroidLeft = new THREE.Vector3();
+        let centroidRight = new THREE.Vector3();
+
+        // Symmetric regular tetrahedron vertex direction vectors
+        const u0 = new THREE.Vector3(1, 0, 0);
+        const u1 = new THREE.Vector3(-1/3, (2*Math.sqrt(2))/3, 0);
+        const u2 = new THREE.Vector3(-1/3, -Math.sqrt(2)/3, Math.sqrt(2/3));
+        const u3 = new THREE.Vector3(-1/3, -Math.sqrt(2)/3, -Math.sqrt(2/3));
+
+        // Ion positions array (7 magnetic ions)
+        let ionNodes = [];
+        let spinObjects = [];
+
+        // Monopole Visual Elements
+        let monopoleMeshLeft, monopoleMeshRight;
+        let monopoleLabelLeft, monopoleLabelRight;
+        let monopoleTargetOpacityLeft = 0, monopoleTargetOpacityRight = 0;
+        let monopoleCurrentOpacityLeft = 0, monopoleCurrentOpacityRight = 0;
+
+        // Vector Field Line Elements
+        let fieldLinesGroup;
+        let fieldLineCurves = [];
+        let fieldParticleMeshes = [];
+        let fieldLineMat;
+        let targetFieldOpacity = 0;
+        let currentFieldOpacity = 0;
+
+        function createTextSprite(text, colorHex) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, 128, 128);
+            
+            // Outer glow background
+            ctx.beginPath();
+            ctx.arc(64, 64, 48, 0, Math.PI * 2);
+            ctx.fillStyle = colorHex === '#ff3366' ? 'rgba(255,0,127,0.35)' : 'rgba(0,180,255,0.35)';
+            ctx.fill();
+
+            // Border
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = colorHex;
+            ctx.stroke();
+
+            // Text
+            ctx.font = 'bold 64px "Jua", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 64, 66);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true,
+                depthTest: false
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1.1, 1.1, 1.1);
+            return sprite;
+        }
+
+        function initSpinIce3D() {
+            const canvas = document.getElementById('spin-ice-canvas');
+            if (!canvas) return;
+
+            const container = canvas.parentElement;
+            const width = container.clientWidth || 600;
+            const height = container.clientHeight || 420;
+
+            if (spinIceInitialized) {
+                spinRenderer.setSize(width, height);
+                spinCamera.aspect = width / height;
+                spinCamera.updateProjectionMatrix();
+                return;
+            }
+
+            spinIceInitialized = true;
+
+            // Scene setup
+            spinScene = new THREE.Scene();
+
+            // Camera setup - Positioned further back to ensure full view without clipping
+            spinCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            spinCamera.position.set(0, 1.8, 11.5);
+
+            // Renderer setup
+            spinRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            spinRenderer.setSize(width, height);
+            spinRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Controls
+            spinControls = new THREE.OrbitControls(spinCamera, spinRenderer.domElement);
+            spinControls.enableDamping = true;
+            spinControls.dampingFactor = 0.08;
+            spinControls.maxDistance = 18;
+            spinControls.minDistance = 4;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            spinScene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0x00e5ff, 0.85);
+            dirLight1.position.set(5, 8, 5);
+            spinScene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0xff007f, 0.65);
+            dirLight2.position.set(-5, -5, -5);
+            spinScene.add(dirLight2);
+
+            // Define 7 Ion Positions
+            ionNodes = [
+                // 0: Central Shared Ion at Origin (0,0,0)
+                { id: 0, pos: new THREE.Vector3(0, 0, 0), isShared: true, localAxisLeft: new THREE.Vector3(1,0,0), spinSign: -1 },
+
+                // Left Tetrahedron (Tet 1) Outer Ions
+                { id: 1, pos: centerLeft.clone().add(u1.clone().multiplyScalar(R_TETRA)), localAxisLeft: u1.clone().normalize(), spinSign: 1 },
+                { id: 2, pos: centerLeft.clone().add(u2.clone().multiplyScalar(R_TETRA)), localAxisLeft: u2.clone().normalize(), spinSign: -1 },
+                { id: 3, pos: centerLeft.clone().add(u3.clone().multiplyScalar(R_TETRA)), localAxisLeft: u3.clone().normalize(), spinSign: 1 },
+
+                // Right Tetrahedron (Tet 2) Outer Ions
+                { id: 4, pos: centerRight.clone().add(new THREE.Vector3(1/3, -2*Math.sqrt(2)/3, 0).multiplyScalar(R_TETRA)), localAxisRight: new THREE.Vector3(1/3, -2*Math.sqrt(2)/3, 0).normalize(), spinSign: -1 },
+                { id: 5, pos: centerRight.clone().add(new THREE.Vector3(1/3, Math.sqrt(2)/3, -Math.sqrt(2/3)).multiplyScalar(R_TETRA)), localAxisRight: new THREE.Vector3(1/3, Math.sqrt(2)/3, -Math.sqrt(2/3)).normalize(), spinSign: 1 },
+                { id: 6, pos: centerRight.clone().add(new THREE.Vector3(1/3, Math.sqrt(2)/3, Math.sqrt(2/3)).multiplyScalar(R_TETRA)), localAxisRight: new THREE.Vector3(1/3, Math.sqrt(2)/3, Math.sqrt(2/3)).normalize(), spinSign: -1 }
+            ];
+
+            // Calculate Exact Geometric Centroids of Tetrahedra
+            centroidLeft.copy(ionNodes[0].pos).add(ionNodes[1].pos).add(ionNodes[2].pos).add(ionNodes[3].pos).multiplyScalar(0.25);
+            centroidRight.copy(ionNodes[0].pos).add(ionNodes[4].pos).add(ionNodes[5].pos).add(ionNodes[6].pos).multiplyScalar(0.25);
+
+            // Render Tetrahedra Wireframes & Semi-transparent Faces
+            renderTetrahedronFaces([ionNodes[0].pos, ionNodes[1].pos, ionNodes[2].pos, ionNodes[3].pos], 0x8b5cf6);
+            renderTetrahedronFaces([ionNodes[0].pos, ionNodes[4].pos, ionNodes[5].pos, ionNodes[6].pos], 0x06b6d4);
+
+            // Render Shiny Golden Ion Spheres
+            const ionGeo = new THREE.SphereGeometry(0.24, 32, 32);
+            const ionMat = new THREE.MeshStandardMaterial({
+                color: 0xf59e0b,
+                metalness: 0.8,
+                roughness: 0.2,
+                emissive: 0x78350f,
+                emissiveIntensity: 0.3
+            });
+
+            ionNodes.forEach(ion => {
+                const sphere = new THREE.Mesh(ionGeo, ionMat);
+                sphere.position.copy(ion.pos);
+                spinScene.add(sphere);
+
+                // Create Spin Visual Model
+                const spinGroup = new THREE.Group();
+                spinGroup.position.copy(ion.pos);
+
+                const barGroup = createBarMagnetMesh();
+                spinGroup.add(barGroup);
+
+                const arrowGroup = createArrowMesh();
+                spinGroup.add(arrowGroup);
+
+                spinScene.add(spinGroup);
+
+                spinObjects.push({
+                    ion: ion,
+                    group: spinGroup,
+                    barGroup: barGroup,
+                    arrowGroup: arrowGroup,
+                    currentDir: new THREE.Vector3(1, 0, 0),
+                    targetDir: new THREE.Vector3(1, 0, 0),
+                    animating: false,
+                    animProgress: 1.0
+                });
+            });
+
+            const monopoleGeo = new THREE.SphereGeometry(0.42, 32, 32);
+            
+            // Left Monopole (South -Q)
+            const matLeft = new THREE.MeshStandardMaterial({
+                color: 0x3388ff,
+                transparent: true,
+                opacity: 0,
+                emissive: 0x0066ff,
+                emissiveIntensity: 0.85
+            });
+            monopoleMeshLeft = new THREE.Mesh(monopoleGeo, matLeft);
+            monopoleMeshLeft.position.copy(centroidLeft);
+            spinScene.add(monopoleMeshLeft);
+
+            monopoleLabelLeft = createTextSprite("S", "#3388ff");
+            monopoleLabelLeft.position.copy(centroidLeft);
+            monopoleLabelLeft.material.opacity = 0;
+            spinScene.add(monopoleLabelLeft);
+
+            // Right Monopole (North +Q)
+            const matRight = new THREE.MeshStandardMaterial({
+                color: 0xff3366,
+                transparent: true,
+                opacity: 0,
+                emissive: 0xff0055,
+                emissiveIntensity: 0.85
+            });
+            monopoleMeshRight = new THREE.Mesh(monopoleGeo, matRight);
+            monopoleMeshRight.position.copy(centroidRight);
+            spinScene.add(monopoleMeshRight);
+
+            monopoleLabelRight = createTextSprite("N", "#ff3366");
+            monopoleLabelRight.position.copy(centroidRight);
+            monopoleLabelRight.material.opacity = 0;
+            spinScene.add(monopoleLabelRight);
+
+            // Build Vector Field Lines between Monopoles
+            buildVectorFieldLines();
+
+            // Initial Spin Orientations Update
+            updateAllSpinOrientations(false);
+            recalculateMonopoles();
+
+            // Start Animation Loop
+            animateSpinIce();
+        }
+
+        function buildVectorFieldLines() {
+            fieldLinesGroup = new THREE.Group();
+
+            fieldLineMat = new THREE.LineBasicMaterial({
+                color: 0x00e5ff,
+                transparent: true,
+                opacity: 0,
+                linewidth: 2
+            });
+
+            const numLines = 8;
+            const vecNS = new THREE.Vector3().subVectors(centroidLeft, centroidRight); // N to S vector
+            const len = vecNS.length();
+            const axis = vecNS.clone().normalize();
+
+            // Find perpendicular plane vectors
+            let perp1 = new THREE.Vector3(0, 1, 0);
+            if (Math.abs(axis.y) > 0.9) perp1.set(1, 0, 0);
+            const perp2 = new THREE.Vector3().crossVectors(axis, perp1).normalize();
+            perp1.crossVectors(perp2, axis).normalize();
+
+            const particleGeo = new THREE.SphereGeometry(0.065, 12, 12);
+            const particleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+
+            for (let i = 0; i < numLines; i++) {
+                const angle = (i / numLines) * Math.PI * 2;
+                const radius = 0.85 + (i % 2) * 0.4;
+
+                const radialOffset = new THREE.Vector3()
+                    .addScaledVector(perp1, Math.cos(angle) * radius)
+                    .addScaledVector(perp2, Math.sin(angle) * radius);
+
+                const p0 = centroidRight.clone();
+                const p1 = centroidRight.clone().addScaledVector(axis, len * 0.28).add(radialOffset);
+                const p2 = centroidLeft.clone().addScaledVector(axis, -len * 0.28).add(radialOffset);
+                const p3 = centroidLeft.clone();
+
+                const curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3]);
+                fieldLineCurves.push(curve);
+
+                const points = curve.getPoints(36);
+                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const line = new THREE.Line(lineGeo, fieldLineMat);
+                fieldLinesGroup.add(line);
+
+                // Add 2 flowing particles along each field line curve
+                for (let p = 0; p < 2; p++) {
+                    const particle = new THREE.Mesh(particleGeo, particleMat.clone());
+                    particle.userData = { curveIndex: i, offset: p * 0.5 };
+                    fieldLinesGroup.add(particle);
+                    fieldParticleMeshes.push(particle);
+                }
+            }
+
+            spinScene.add(fieldLinesGroup);
+        }
+
+        function renderTetrahedronFaces(vertices, colorHex) {
+            const lineMat = new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.45, linewidth: 2 });
+
+            for (let i = 0; i < vertices.length; i++) {
+                for (let j = i + 1; j < vertices.length; j++) {
+                    const geo = new THREE.BufferGeometry().setFromPoints([vertices[i], vertices[j]]);
+                    const line = new THREE.Line(geo, lineMat);
+                    spinScene.add(line);
+                }
+            }
+
+            const facesGeo = new THREE.BufferGeometry();
+            const posArray = [];
+
+            const tris = [
+                [0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]
+            ];
+
+            tris.forEach(t => {
+                posArray.push(vertices[t[0]].x, vertices[t[0]].y, vertices[t[0]].z);
+                posArray.push(vertices[t[1]].x, vertices[t[1]].y, vertices[t[1]].z);
+                posArray.push(vertices[t[2]].x, vertices[t[2]].y, vertices[t[2]].z);
+            });
+
+            facesGeo.setAttribute('position', new THREE.Float32BufferAttribute(posArray, 3));
+            facesGeo.computeVertexNormals();
+
+            const faceMat = new THREE.MeshBasicMaterial({
+                color: colorHex,
+                transparent: true,
+                opacity: 0.12,
+                side: THREE.DoubleSide
+            });
+            const faceMesh = new THREE.Mesh(facesGeo, faceMat);
+            spinScene.add(faceMesh);
+        }
+
+        function recalculateMonopoles() {
+            const sharedSpin = ionNodes[0].spinSign;
+            const statusTitle = document.getElementById('spin-status-title');
+            const statusDesc = document.getElementById('spin-status-desc');
+
+            if (sharedSpin === -1) {
+                // Ground State (2-In 2-Out)
+                monopoleTargetOpacityLeft = 0;
+                monopoleTargetOpacityRight = 0;
+                targetFieldOpacity = 0;
+
+                if (statusTitle) {
+                    statusTitle.innerHTML = `<span class="spin-badge-normal">✨ 2-In 2-Out 안정한 상태</span>`;
+                }
+                if (statusDesc) {
+                    statusDesc.innerText = `피라미드(사면체) 공간 중심을 향해 미니 자석 2개는 안쪽, 2개는 바깥쪽을 바라보며 완벽하게 균형을 맞춘 상태입니다.`;
+                }
+            } else {
+                // Flipped State (Monopoles & Magnetic Vector Field Active)
+                monopoleTargetOpacityLeft = 1;
+                monopoleTargetOpacityRight = 1;
+                targetFieldOpacity = 0.85;
+
+                if (statusTitle) {
+                    statusTitle.innerHTML = `<span class="spin-badge-monopole">⚡ 자기홀극(Magnetic Monopole) & 자기력선 발생!</span>`;
+                }
+                if (statusDesc) {
+                    statusDesc.innerText = `가운데 자석 하나를 뒤집자 균형이 깨졌어요! N극과 S극이 따로 떨어진 유령 자석(자기홀극)이 생겨나고 둘 사이에 멋진 자기력선이 이어집니다.`;
+                }
+            }
+        }
+
+        function flipSharedSpin() {
+            // Simple physics toggle: flip between -1 (Ground) and 1 (Monopoles)
+            ionNodes[0].spinSign = (ionNodes[0].spinSign === -1) ? 1 : -1;
+            updateAllSpinOrientations(true);
+            recalculateMonopoles();
+        }
+
+        function resetSpinIceView() {
+            ionNodes[0].spinSign = -1; // Reset to Ground State
+            updateAllSpinOrientations(true);
+            recalculateMonopoles();
+
+            if (spinControls) {
+                spinControls.reset();
+            }
+        }
+
+        function animateSpinIce() {
+            requestAnimationFrame(animateSpinIce);
+
+            if (!spinScene || !spinRenderer || !spinCamera) return;
+
+            spinControls.update();
+
+            const time = Date.now() * 0.003;
+
+            // Interpolate Spin Flipping Animations
+            spinObjects.forEach(obj => {
+                if (obj.animating) {
+                    obj.animProgress += 0.06;
+                    if (obj.animProgress >= 1.0) {
+                        obj.animProgress = 1.0;
+                        obj.animating = false;
+                        obj.currentDir.copy(obj.targetDir);
+                    }
+
+                    const defaultDir = new THREE.Vector3(0, 1, 0);
+                    const qStart = new THREE.Quaternion().setFromUnitVectors(defaultDir, obj.currentDir.clone().normalize());
+                    const qEnd = new THREE.Quaternion().setFromUnitVectors(defaultDir, obj.targetDir.clone().normalize());
+
+                    const qCurrent = new THREE.Quaternion();
+                    qCurrent.slerpQuaternions(qStart, qEnd, obj.animProgress);
+                    obj.group.quaternion.copy(qCurrent);
+                }
+            });
+
+            // Smooth Monopole Fade-In / Fade-Out Lerp
+            monopoleCurrentOpacityLeft += (monopoleTargetOpacityLeft - monopoleCurrentOpacityLeft) * 0.08;
+            monopoleCurrentOpacityRight += (monopoleTargetOpacityRight - monopoleCurrentOpacityRight) * 0.08;
+
+            if (monopoleMeshLeft) {
+                monopoleMeshLeft.material.opacity = monopoleCurrentOpacityLeft * 0.75;
+                const scaleL = 1.0 + Math.sin(time * 3) * 0.08 * monopoleCurrentOpacityLeft;
+                monopoleMeshLeft.scale.set(scaleL, scaleL, scaleL);
+            }
+            if (monopoleMeshRight) {
+                monopoleMeshRight.material.opacity = monopoleCurrentOpacityRight * 0.75;
+                const scaleR = 1.0 + Math.sin(time * 3 + Math.PI) * 0.08 * monopoleCurrentOpacityRight;
+                monopoleMeshRight.scale.set(scaleR, scaleR, scaleR);
+            }
+
+            if (monopoleLabelLeft) monopoleLabelLeft.material.opacity = monopoleCurrentOpacityLeft;
+            if (monopoleLabelRight) monopoleLabelRight.material.opacity = monopoleCurrentOpacityRight;
+
+            // Vector Field Lines & Particles Animation
+            currentFieldOpacity += (targetFieldOpacity - currentFieldOpacity) * 0.08;
+            if (fieldLineMat) fieldLineMat.opacity = currentFieldOpacity * 0.7;
+
+            fieldParticleMeshes.forEach(p => {
+                p.material.opacity = currentFieldOpacity;
+                if (currentFieldOpacity > 0.02) {
+                    const t = (time * 0.35 + p.userData.offset) % 1.0;
+                    const curve = fieldLineCurves[p.userData.curveIndex];
+                    if (curve) {
+                        const pos = curve.getPoint(t);
+                        p.position.copy(pos);
+                    }
+                }
+            });
+
+            spinRenderer.render(spinScene, spinCamera);
         }
 
         // Initialize the HTML generation on load
@@ -782,6 +1631,17 @@
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
+
+            if (spinIceInitialized && spinRenderer && spinCamera) {
+                const container = document.getElementById('spin-ice-canvas')?.parentElement;
+                if (container) {
+                    const w = container.clientWidth;
+                    const h = container.clientHeight;
+                    spinRenderer.setSize(w, h);
+                    spinCamera.aspect = w / h;
+                    spinCamera.updateProjectionMatrix();
+                }
+            }
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -862,12 +1722,29 @@
             }
 
             electrons.forEach(e => { e.update(); e.draw(ctx); });
-            spins.forEach(s => { s.update(); s.draw(ctx); });
+        spins.forEach(s => { s.update(); s.draw(ctx); });
 
-            requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Keyboard Arrow Navigation (Left & Right)
+    document.addEventListener('keydown', (e) => {
+        // Do not navigate if modals are open
+        const tocModal = document.getElementById('tocModal');
+        const hoModal = document.getElementById('hoModal');
+        if ((tocModal && tocModal.classList.contains('active')) || 
+            (hoModal && hoModal.classList.contains('active'))) {
+            return;
         }
 
-        animate();
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        }
+    });
     </script>
 </body>
 </html>
