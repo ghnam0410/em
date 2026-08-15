@@ -254,10 +254,14 @@
         }
 
         .slide-visual img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;        /* ❶ 부모 박스 너비를 넘지 않도록 제한 */
+            max-height: 450px;      /* ❷ 화면 높이에 맞춰 이미지가 너무 커지는 것 방지 */
+            width: auto;            /* ❸ 가로 비율 자동 맞춤 */
+            height: auto;           /* ❹ 세로 비율 자동 맞춤 (깨짐 방지) */
+            object-fit: contain;    /* ❺ 이미지 전체가 화면에 온전히 나오도록 설정 */
             border-radius: 20px;
+            display: block;
+            margin: 0 auto;         /* ❻ 중앙 정렬 */
         }
 
         .visual-placeholder {
